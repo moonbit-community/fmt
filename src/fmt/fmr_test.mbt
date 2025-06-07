@@ -34,3 +34,8 @@ test "example/3" {
     content= "hello world 42"
   )
 }
+
+test "Oct" {
+  inspect(fstring("{:o}", [8]), content="10")
+  inspect(fstring("{:#o}", [8]), content="0o10")
+}

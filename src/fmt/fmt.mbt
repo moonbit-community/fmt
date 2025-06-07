@@ -48,6 +48,16 @@ fn align_string(spec : FormatSpec, value : String, sb : StringBuilder) -> Unit {
   let padding = width - value.length()
   let fill = spec.options.fill.or(' ')
   
+  if spec.options.sharp {
+    match spec.typ {
+      SpecType::Binary => sb.write_string("0b")
+      SpecType::Octal => sb.write_string("0o")
+      SpecType::HexLower => sb.write_string("0x")
+      SpecType::HexUpper => sb.write_string("0X")
+      _ => ()
+    }
+  }
+
   if spec.options.zero {
     sb.write_string(value.pad_start(width, '0'))
     return
