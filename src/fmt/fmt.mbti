@@ -7,8 +7,6 @@ fn fprintln(String, Json) -> Unit
 
 fn fstring(String, Json) -> String
 
-fn ryu_to_string(Double, Bool) -> String
-
 // Types and methods
 type FormatPart
 impl Show for FormatPart
