@@ -46,15 +46,22 @@ fn format_part(part : FormatPart, values : Array[Json]) -> String {
 fn align_string(spec : FormatSpec, value : String, sb : StringBuilder) -> Unit {
   let width = spec.width.or(0)
   let padding = width - value.length()
+  let fill = spec.options.fill.or(' ')
+  
+  if spec.options.zero {
+    sb.write_string(value.pad_start(width, '0'))
+    return
+  }
+
   if padding > 0 {
     match spec.options.align {
-      Align::Left => sb.write_string(value.pad_end(padding, ' '))
-      Align::Right => sb.write_string(value.pad_start(padding, ' '))
+      Align::Left => sb.write_string(value.pad_end(padding, fill))
+      Align::Right => sb.write_string(value.pad_start(padding, fill))
       Align::Center => {
         let left_padding = padding / 2
         let right_padding = padding - left_padding
         sb.write_string(
-          value.pad_start(left_padding, ' ').pad_end(right_padding, ' '),
+          value.pad_start(left_padding, fill).pad_end(right_padding, fill),
         )
       }
     }
@@ -114,14 +121,17 @@ fn format_digit(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
         SpecType::Octal => num.to_string(radix=8)
         SpecType::HexLower => num.to_string(radix=16)
         SpecType::HexUpper => num.to_string(radix=16).to_upper()
-        _ => abort("Unsupported format type for digit")
+        SpecType::Digit => num.to_string()
+        _ => {
+          abort("Unsupported format type for digit")
+        }
       }
 
-      // TODO: Handle grouping 
-      match spec.grouping {
-        _ => ...
-      }
-
+      // // TODO: Handle grouping 
+      // match spec.grouping {
+      //   _ => ...
+      // }
+    
       // Align the string according to the spec
       align_string(spec, num_string, sb)
     }
@@ -132,8 +142,7 @@ fn format_digit(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
 ///|
 pub fn format(parts : Array[FormatPart], values : Array[Json]) -> String {
   let result = StringBuilder::new()
-  for idx in 0..<parts.length() {
-    let part = parts[idx]
+  for part in parts {
     let formatted_value = format_part(part, values)
     result.write_string(formatted_value)
   }
@@ -143,13 +152,15 @@ pub fn format(parts : Array[FormatPart], values : Array[Json]) -> String {
 ///|
 pub fn fprintln(parts : String, values : Json) -> Unit {
   let parts = parse_format_string(parts)
+  // println("fprintln called with parts: " + parts.to_string())
   match values {
     Json::Array(_) => ()
     _ => abort("fprintln expects an array of values")
   }
+  let values = values.as_array().unwrap()
   match parts {
     Ok(parts) => {
-      let formatted = format(parts, values.as_array().unwrap())
+      let formatted = format(parts, values)
       println(formatted)
     }
     Err(e) => abort("Failed to parse format string: " + e.to_string())
