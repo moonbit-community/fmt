@@ -1,25 +1,25 @@
 ///|
-type! ParseError String derive(Eq, Show)
+pub type! ParseError String derive(Eq, Show)
 
 ///|
 typealias @string.View as str
 
 ///|
-enum Align {
+priv enum Align {
   Left
   Right
   Center
 } derive(Show, Eq)
 
 ///|
-enum Sign {
+priv enum Sign {
   Plus
   Minus
   Space
 } derive(Show)
 
 ///|
-enum Grouping {
+priv enum Grouping {
   Comma
   Underscore
   Default
@@ -31,7 +31,7 @@ impl Default for Grouping with default() {
 }
 
 ///|
-enum SpecType {
+priv enum SpecType {
   Binary
   Char
   Digit
@@ -51,7 +51,7 @@ impl Default for SpecType with default() {
 }
 
 ///|
-struct Options {
+priv struct Options {
   fill : Char?
   align : Align
   sign : Sign?
@@ -83,7 +83,7 @@ impl Default for Options with default() {
 }
 
 ///|
-struct FormatSpec {
+priv struct FormatSpec {
   options : Options
   width : Int?
   grouping : Grouping

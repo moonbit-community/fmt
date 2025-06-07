@@ -15,6 +15,7 @@
 // MoonBit implementation of Ryu, https://github.com/ulfjack/ryu
 // This is a fork of the ryu crate adjusted to comply to the ECMAScript number-to-string algorithm,
 
+///|
 fn pow5bits(e : Int) -> Int {
   ((e * 1217359).reinterpret_as_uint() >> 19).reinterpret_as_int() + 1
 }
@@ -325,7 +326,6 @@ priv struct FloatingDecimal64 {
   exponent : Int
 }
 
-
 ///|
 fn d2d(ieeeMantissa : UInt64, ieeeExponent : UInt) -> FloatingDecimal64 {
   let mut e2 : Int = 0
@@ -507,9 +507,12 @@ fn d2d(ieeeMantissa : UInt64, ieeeExponent : UInt) -> FloatingDecimal64 {
   fd
 }
 
-
 ///|
-fn to_chars(v : FloatingDecimal64, sign : Bool, scientificNotation: Bool) -> String {
+fn to_chars(
+  v : FloatingDecimal64,
+  sign : Bool,
+  scientificNotation : Bool
+) -> String {
   // Step 5: Print the decimal representation.
   let result = FixedArray::make(25, Byte::default())
   let mut index : Int = 0
@@ -637,7 +640,7 @@ fn d2d_small_int(
 
 ///|
 /// TODO: ryu_to_logger[T:Logger](Double/Float, T) -> Unit
-pub fn ryu_to_string(val : Double, scientificNotation: Bool) -> String {
+pub fn ryu_to_string(val : Double, scientificNotation : Bool) -> String {
   if val == 0.0 {
     return "0"
   }
@@ -675,8 +678,6 @@ pub fn ryu_to_string(val : Double, scientificNotation: Bool) -> String {
   }
   to_chars(v, ieeeSign, scientificNotation)
 }
-
-
 
 ///|
 test "double/ryu.mbt:205" {

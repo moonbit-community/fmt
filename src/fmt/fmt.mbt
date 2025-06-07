@@ -17,7 +17,7 @@ fn format_part(part : FormatPart, values : Array[Json]) -> String {
             }
             Json::True => align_string(spec, "true", sb)
             Json::False => align_string(spec, "false", sb)
-            Json::Null => align_string(spec, "null", sb)
+            Json::Null => align_string(spec, "none", sb)
             _ => {
               // For unsupported types, just convert to string
               let value_string = value.to_string()
@@ -141,11 +141,15 @@ pub fn format(parts : Array[FormatPart], values : Array[Json]) -> String {
 }
 
 ///|
-pub fn fprintln(parts : String, values : Array[Json]) -> Unit {
+pub fn fprintln(parts : String, values : Json) -> Unit {
   let parts = parse_format_string(parts)
+  match values {
+    Json::Array(_) => ()
+    _ => abort("fprintln expects an array of values")
+  }
   match parts {
     Ok(parts) => {
-      let formatted = format(parts, values)
+      let formatted = format(parts, values.as_array().unwrap())
       println(formatted)
     }
     Err(e) => abort("Failed to parse format string: " + e.to_string())
@@ -153,11 +157,14 @@ pub fn fprintln(parts : String, values : Array[Json]) -> Unit {
 }
 
 ///|
-pub fn fstring(parts : String, values : Array[Json]) -> String {
+pub fn fstring(parts : String, values : Json) -> String {
   let parts = parse_format_string(parts)
+  match values {
+    Json::Array(_) => ()
+    _ => abort("fprintln expects an array of values")
+  }
   match parts {
-    Ok(parts) => format(parts, values)
+    Ok(parts) => format(parts, values.as_array().unwrap())
     Err(e) => abort("Failed to parse format string: " + e.to_string())
   }
 }
-

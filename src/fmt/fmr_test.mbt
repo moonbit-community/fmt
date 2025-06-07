@@ -1,26 +1,23 @@
+///|
 struct TestObj {
   name : String
   age : Int
 } derive(ToJson, FromJson)
 
 ///|
-test "format example" {
-  let obj: TestObj =  { name: "Alice", age: 30 }
-  fprintln("Hello {:*<5} {}", [1, obj.to_json()])
+test "example/1" {
+  fprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
 }
 
 ///|
-test "fprintln" {
-  let parts = "{0} {1} {2:.2f}"
+test "example/2" {
+  let parts = "{0} {1} {{not things}} {1} {2:.2f}"
   fprintln(parts, ["hello", "world", 42])
   // Expected output: "Hello World 42"
 }
 
 ///|
-test "fprintln" {
+test "example/3" {
   let parts = "{} {} {}"
   fprintln(parts, ["hello", "world", 42])
 }
-
-
-

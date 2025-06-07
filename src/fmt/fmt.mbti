@@ -1,0 +1,23 @@
+package "username/hello/fmt"
+
+// Values
+fn format(Array[FormatPart], Array[Json]) -> String
+
+fn fprintln(String, Json) -> Unit
+
+fn fstring(String, Json) -> String
+
+fn ryu_to_string(Double, Bool) -> String
+
+// Types and methods
+type FormatPart
+impl Show for FormatPart
+
+pub type! ParseError String
+impl Eq for ParseError
+impl Show for ParseError
+
+// Type aliases
+
+// Traits
+
