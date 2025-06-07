@@ -2,9 +2,9 @@
   "name": "BigOrangeQWQ/fmt",
   "version": "0.1.0",
   "readme": "README.md",
-  "repository": "",
+  "repository": "https://github.com/BigOrangeQWQ/fmt",
   "license": "Apache-2.0",
-  "keywords": [],
+  "keywords": ["fmt", "formatting", "string"],
   "description": "",
   "source": "src"
 }
