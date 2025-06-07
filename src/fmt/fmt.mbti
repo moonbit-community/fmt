@@ -1,4 +1,4 @@
-package "username/hello/fmt"
+package "BigOrangeQWQ/fmt/fmt"
 
 // Values
 fn format(Array[FormatPart], Array[Json]) -> String
