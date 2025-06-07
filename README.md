@@ -11,7 +11,8 @@ struct TestObj {
 
 ///|
 test "example/1" {
-  fprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
+  let obj = { name: "Alice", age: 30 } // Test Obj
+  fprintln("Hello {:05} {}", [1, obj])
   // Hello 00001 Object({"name": String("Alice"), "age": Number(30)})
 }
 

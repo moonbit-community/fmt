@@ -179,7 +179,7 @@ pub fn fprintln(parts : String, values : Json) -> Unit {
 ///|
 pub fn fstring(parts : String, values : Json) -> String {
   let parts = parse_format_string(parts)
-  println(parts)
+  // println(parts)
   match values {
     Json::Array(_) => ()
     _ => abort("fprintln expects an array of values")
