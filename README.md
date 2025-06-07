@@ -44,4 +44,4 @@ test "example/3" {
 
 # Thanks
 
-处理浮点数字符串相关 [Core](https://github.com/moonbitlang/core/blob/03c9be796626e5fced57fdbfed4f9ad4eee16e3f/double/internal/ryu)
+处理浮点数字符串相关 [Core](https://github.com/moonbitlang/core/tree/main/double/internal/ryu)

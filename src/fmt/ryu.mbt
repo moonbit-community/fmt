@@ -15,6 +15,8 @@
 // MoonBit implementation of Ryu, https://github.com/ulfjack/ryu
 // This is a fork of the ryu crate adjusted to comply to the ECMAScript number-to-string algorithm,
 
+
+// This File fork from https://github.com/moonbitlang/core/tree/main/double/internal/ryu
 ///|
 fn pow5bits(e : Int) -> Int {
   ((e * 1217359).reinterpret_as_uint() >> 19).reinterpret_as_int() + 1
