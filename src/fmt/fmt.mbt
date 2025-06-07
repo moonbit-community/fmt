@@ -69,9 +69,8 @@ fn align_string(spec : FormatSpec, value : String, sb : StringBuilder) -> Unit {
       Align::Right => sb.write_string(value.pad_start(padding, fill))
       Align::Center => {
         let left_padding = padding / 2
-        let right_padding = padding - left_padding
         sb.write_string(
-          value.pad_start(left_padding, fill).pad_end(right_padding, fill),
+          value.pad_start(left_padding, fill).pad_end(padding, fill),
         )
       }
     }
@@ -180,6 +179,7 @@ pub fn fprintln(parts : String, values : Json) -> Unit {
 ///|
 pub fn fstring(parts : String, values : Json) -> String {
   let parts = parse_format_string(parts)
+  println(parts)
   match values {
     Json::Array(_) => ()
     _ => abort("fprintln expects an array of values")

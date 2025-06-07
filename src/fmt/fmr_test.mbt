@@ -35,7 +35,19 @@ test "example/3" {
   )
 }
 
-test "Oct" {
+test "example/4" {
   inspect(fstring("{:o}", [8]), content="10")
   inspect(fstring("{:#o}", [8]), content="0o10")
+  inspect(fstring("{:b}", [16]), content="10000")
+  inspect(fstring("{:#b}", [16]), content="0b10000")
+  inspect(fstring("{:x}", [255]), content="ff")
+  inspect(fstring("{:#x}", [255]), content="0xff")
+  inspect(fstring("{:X}", [255]), content="FF")
+  inspect(fstring("{:#X}", [255]), content="0XFF")
+}
+
+test "example/5" {
+  inspect(fstring("{:>>30}", ["test"]), content=">>>>>>>>>>>>>>>>>>>>>>test")
+  inspect(fstring("{:<<30}", ["test"]), content="test<<<<<<<<<<<<<<<<<<<<<<")
+  inspect(fstring("{:^^30}", ["test"]), content="^^^^^^^^^test^^^^^^^^^^^^^")
 }
