@@ -7,7 +7,8 @@ fn format_part(part : FormatPart, values : Array[Json]) -> String {
       match spec.typ {
         Digit | Binary | Octal | HexLower | HexUpper =>
           format_digit(spec, value, sb)
-        Float | ExponentLower | ExponentUpper => format_float(spec, value, sb)
+        Float | ExponentLower | ExponentUpper | Percent =>
+          format_float(spec, value, sb)
         Default =>
           match value {
             Json::String(s) => align_string(spec, s, sb)
@@ -17,23 +18,9 @@ fn format_part(part : FormatPart, values : Array[Json]) -> String {
             }
             Json::True => align_string(spec, "true", sb)
             Json::False => align_string(spec, "false", sb)
-            Json::Null => align_string(spec, "none", sb)
-            _ => {
-              // For unsupported types, just convert to string
-              let value_string = value.to_string()
-              align_string(spec, value_string, sb)
-            }
-          }
-        String =>
-          match value {
-            Json::String(s) => align_string(spec, s, sb)
-            _ => abort("String format specifier expects a string value")
-          }
-        Char =>
-          match value {
-            Json::String(s) if s.length() == 1 => align_string(spec, s, sb)
-            _ =>
-              abort("Char format specifier expects a single character string")
+            Json::Null => align_string(spec, "None", sb)
+            Json::Array(arr) => align_string(spec, arr.to_string(), sb)
+            Json::Object(obj) => align_string(spec, obj.to_string(), sb)
           }
       }
     }
@@ -47,7 +34,6 @@ fn align_string(spec : FormatSpec, value : String, sb : StringBuilder) -> Unit {
   let width = spec.width.or(0)
   let padding = width - value.length()
   let fill = spec.options.fill.or(' ')
-  
   if spec.options.sharp {
     match spec.typ {
       SpecType::Binary => sb.write_string("0b")
@@ -57,18 +43,16 @@ fn align_string(spec : FormatSpec, value : String, sb : StringBuilder) -> Unit {
       _ => ()
     }
   }
-
   if spec.options.zero {
     sb.write_string(value.pad_start(width, '0'))
     return
   }
-
   if padding > 0 {
     match spec.options.align {
       Align::Left => sb.write_string(value.pad_end(padding, fill))
       Align::Right => sb.write_string(value.pad_start(padding, fill))
       Align::Center => {
-        let left_padding = padding / 2
+        let left_padding = padding / 2 + value.length() / 2
         sb.write_string(
           value.pad_start(left_padding, fill).pad_end(padding, fill),
         )
@@ -105,11 +89,18 @@ fn trim_or_pad_decimal(value : String, precision : Int) -> String {
 fn format_float(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
   match value {
     Json::Number(num) => {
-      // TODO: need change core to support float formatting
       let num_string = match spec.typ {
         Float => trim_or_pad_decimal(ryu_to_string(num, false), spec.precision)
         ExponentLower => ryu_to_string(num, true)
-        ExponentUpper => ryu_to_string(num, true).to_upper()
+        ExponentUpper => ryu_to_string(num, true, upper=true)
+        Percent => {
+          let percent_value = num * 100.0
+          trim_or_pad_decimal(
+            ryu_to_string(percent_value, false),
+            spec.precision,
+          ) +
+          "%"
+        }
         _ => abort("Unsupported format type for float")
       }
 
@@ -125,22 +116,35 @@ fn format_digit(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
   match value {
     Json::Number(num) => {
       let num = num.to_int64()
-      let num_string = match spec.typ {
-        SpecType::Binary => num.to_string(radix=2)
-        SpecType::Octal => num.to_string(radix=8)
-        SpecType::HexLower => num.to_string(radix=16)
-        SpecType::HexUpper => num.to_string(radix=16).to_upper()
-        SpecType::Digit => num.to_string()
-        _ => {
-          abort("Unsupported format type for digit")
+      let mut num_string = match spec.typ {
+        Binary => num.to_string(radix=2)
+        Octal => num.to_string(radix=8)
+        HexLower => num.to_string(radix=16)
+        HexUpper => num.to_string(radix=16).to_upper()
+        Digit => num.to_string()
+        _ => abort("Unsupported format type for digit")
+      }
+      if not(spec.grouping is Default) {
+
+        // Check if grouping is valid for the type
+        if spec.grouping is Comma && not(spec.typ is Digit) {
+          abort("Comma grouping is only supported for digit type")
         }
+        let cnt = if spec.typ is Digit { 3 } else { 4 }
+        let new_num_string = StringBuilder::new()
+        for idx, char in num_string {
+          if idx > 0 && idx % cnt == 0 {
+            match spec.grouping {
+              Comma => new_num_string.write_char(',')
+              Underscore => new_num_string.write_char('_')
+              _ => ()
+            }
+          }
+          new_num_string.write_char(char)
+        }
+        num_string = new_num_string.to_string()
       }
 
-      // // TODO: Handle grouping 
-      // match spec.grouping {
-      //   _ => ...
-      // }
-    
       // Align the string according to the spec
       align_string(spec, num_string, sb)
     }
@@ -179,7 +183,6 @@ pub fn fprintln(parts : String, values : Json) -> Unit {
 ///|
 pub fn fstring(parts : String, values : Json) -> String {
   let parts = parse_format_string(parts)
-  // println(parts)
   match values {
     Json::Array(_) => ()
     _ => abort("fprintln expects an array of values")

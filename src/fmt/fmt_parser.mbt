@@ -12,13 +12,6 @@ priv enum Align {
 } derive(Show, Eq)
 
 ///|
-priv enum Sign {
-  Plus
-  Minus
-  Space
-} derive(Show)
-
-///|
 priv enum Grouping {
   Comma
   Underscore
@@ -33,15 +26,14 @@ impl Default for Grouping with default() {
 ///|
 priv enum SpecType {
   Binary
-  Char
   Digit
   ExponentLower
   ExponentUpper
   Float
   Octal
-  String
   HexLower
   HexUpper
+  Percent
   Default
 } derive(Show)
 
@@ -54,8 +46,6 @@ impl Default for SpecType with default() {
 priv struct Options {
   fill : Char?
   align : Align
-  sign : Sign?
-  z : Bool
   sharp : Bool
   zero : Bool
 } derive(Show)
@@ -64,22 +54,13 @@ priv struct Options {
 fn Options::is_empty(self : Options) -> Bool {
   return self.fill.is_empty() &&
     self.align == Align::Left &&
-    self.sign.is_empty() &&
-    not(self.z) &&
     not(self.sharp) &&
     not(self.zero)
 }
 
 ///|
 impl Default for Options with default() {
-  return {
-    fill: None,
-    align: Align::Left,
-    sign: None,
-    z: false,
-    sharp: false,
-    zero: false,
-  }
+  return { fill: None, align: Align::Left, sharp: false, zero: false }
 }
 
 ///|
@@ -112,8 +93,6 @@ enum FormatPart {
 fn parse_options(input : str) -> Result[(Options, str), ParseError] {
   let mut fill : Char? = None
   let mut align : Align = Left
-  let mut sign : Sign? = None
-  let mut z = false
   let mut sharp = false
   let mut zero = false
   let mut idx = 0
@@ -150,33 +129,8 @@ fn parse_options(input : str) -> Result[(Options, str), ParseError] {
       _ => ()
     }
   }
-
-  // [sign]
-  if input.length() > idx {
-    match input.char_at(idx) {
-      '+' => {
-        sign = Some(Sign::Plus)
-        idx += 1
-      }
-      '-' => {
-        sign = Some(Sign::Minus)
-        idx += 1
-      }
-      ' ' => {
-        sign = Some(Sign::Space)
-        idx += 1
-      }
-      _ => ()
-    }
-  }
-
-  // ["z"]["#"]["0"]
   while input.length() > idx {
     match input.char_at(idx) {
-      'z' => {
-        z = true
-        idx += 1
-      }
       '#' => {
         sharp = true
         idx += 1
@@ -188,7 +142,7 @@ fn parse_options(input : str) -> Result[(Options, str), ParseError] {
       _ => break
     }
   }
-  let options = { fill, align, sign, z, sharp, zero }
+  let options = { fill, align, sharp, zero }
   if options.is_empty() {
     return Ok((options, input))
   }
@@ -248,17 +202,16 @@ fn parse_type(input : str) -> Result[(SpecType, str), ParseError] {
     return Ok((SpecType::Default, input))
   }
   match input.char_at(0) {
-    'b' => Ok((SpecType::Binary, input.charcodes(start=1)))
-    'c' => Ok((SpecType::Char, input.charcodes(start=1)))
-    'd' => Ok((SpecType::Digit, input.charcodes(start=1)))
-    'e' => Ok((SpecType::ExponentLower, input.charcodes(start=1)))
-    'E' => Ok((SpecType::ExponentUpper, input.charcodes(start=1)))
-    'f' => Ok((SpecType::Float, input.charcodes(start=1)))
-    'o' => Ok((SpecType::Octal, input.charcodes(start=1)))
-    's' => Ok((SpecType::String, input.charcodes(start=1)))
-    'x' => Ok((SpecType::HexLower, input.charcodes(start=1)))
-    'X' => Ok((SpecType::HexUpper, input.charcodes(start=1)))
-    _ => Ok((SpecType::Default, input))
+    'b' => Ok((Binary, input.charcodes(start=1)))
+    'd' => Ok((Digit, input.charcodes(start=1)))
+    'e' => Ok((ExponentLower, input.charcodes(start=1)))
+    'E' => Ok((ExponentUpper, input.charcodes(start=1)))
+    'f' => Ok((Float, input.charcodes(start=1)))
+    'o' => Ok((Octal, input.charcodes(start=1)))
+    'x' => Ok((HexLower, input.charcodes(start=1)))
+    'X' => Ok((HexUpper, input.charcodes(start=1)))
+    '%' => Ok((Percent, input.charcodes(start=1)))
+    _ => Ok((Default, input))
   }
 }
 
@@ -414,7 +367,7 @@ test "parse_spec_precision" {
   }
   inspect(
     spec,
-    content="{options: {fill: None, align: Left, sign: None, z: false, sharp: false, zero: false}, width: None, grouping: Default, precision: 2, typ: Float}",
+    content="{options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: 2, typ: Float}",
   )
 }
 
@@ -430,7 +383,7 @@ test "parse_spec_width" {
   }
   inspect(
     spec,
-    content="{options: {fill: None, align: Left, sign: None, z: false, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}",
+    content="{options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}",
   )
 }
 
@@ -443,7 +396,7 @@ test "parse_format_part" {
   }
   inspect(
     part,
-    content="LocField(loc=3, spec={options: {fill: None, align: Left, sign: None, z: false, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit})",
+    content="LocField(loc=3, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit})",
   )
   inspect(rest, content="")
 }
@@ -458,7 +411,7 @@ test "parse_fmt_string" {
   inspect(
     result,
     content=
-      #|[LocField(loc=0, spec={options: {fill: None, align: Left, sign: None, z: false, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sign: None, z: false, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Left, sign: None, z: false, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}), Text(text=" {}")]
+      #|[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}), Text(text=" {}")]
     ,
   )
 }

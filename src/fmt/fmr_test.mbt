@@ -11,7 +11,8 @@ test "example/1" {
   inspect(
     fstring("Hello {:05} {}", [1, { name: "Alice", age: 30 }]),
     content=
-      #|Hello 00001 Object({"name": String("Alice"), "age": Number(30)})
+      #|Hello 00001 {"name": String("Alice"), "age": Number(30)}
+
     ,
   )
 }
@@ -49,5 +50,13 @@ test "example/4" {
 test "example/5" {
   inspect(fstring("{:>>30}", ["test"]), content=">>>>>>>>>>>>>>>>>>>>>>test")
   inspect(fstring("{:<<30}", ["test"]), content="test<<<<<<<<<<<<<<<<<<<<<<")
-  inspect(fstring("{:^^30}", ["test"]), content="^^^^^^^^^test^^^^^^^^^^^^^")
+  inspect(fstring("{:^^30}", ["test"]), content="^^^^^^^^^^^test^^^^^^^^^^^")
+}
+
+// 支持数字类型、二进制、八进制、十六进制的分隔符格式化
+// 数字类型每隔3位加一个分隔符，其它类型每隔4位加一个分隔符，逗号仅支持数字类型
+test "example/6" {
+  inspect(fstring("{:_d}", [4285565, 59]), content="428_556_5")
+  inspect(fstring("{:,d}", [4285565, 3]), content="428,556,5")
+  inspect(fstring("{:#_b}", [4285565, 3]), content="0b1000_0010_1100_1000_1111_101")
 }
