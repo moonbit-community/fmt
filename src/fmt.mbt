@@ -148,7 +148,7 @@ fn format_digit(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
 }
 
 ///|
-pub fn format(parts : Array[FormatPart], values : Array[Json]) -> String {
+fn format(parts : Array[FormatPart], values : Array[Json]) -> String {
   let result = StringBuilder::new()
   for part in parts {
     let formatted_value = format_part(part, values)
@@ -167,10 +167,7 @@ pub fn fprintln(parts : String, values : Json) -> Unit {
   }
   let values = values.as_array().unwrap()
   match parts {
-    Ok(parts) => {
-      let formatted = format(parts, values)
-      println(formatted)
-    }
+    Ok(parts) => format(parts, values) |> println
     Err(e) => abort("Failed to parse format string: " + e.to_string())
   }
 }

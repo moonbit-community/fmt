@@ -84,7 +84,7 @@ impl Default for FormatSpec with default() {
 }
 
 ///|
-enum FormatPart {
+priv enum FormatPart {
   LocField(loc~ : Int, spec~ : FormatSpec)
   Text(text~ : String)
 } derive(Show)
