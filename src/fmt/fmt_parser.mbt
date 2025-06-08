@@ -68,7 +68,7 @@ priv struct FormatSpec {
   options : Options
   width : Int?
   grouping : Grouping
-  precision : Int
+  precision : Int?
   typ : SpecType
 } derive(Show)
 
@@ -78,7 +78,7 @@ impl Default for FormatSpec with default() {
     options: Options::default(),
     width: None,
     grouping: Grouping::Default,
-    precision: 6,
+    precision: None,
     typ: SpecType::Default,
   }
 }
@@ -191,13 +191,7 @@ fn parse_spec(input : str) -> (FormatSpec, str) {
   let (precision, rest4) = parse_precision(rest3)
   // 5. type
   let (typ, rest5) = parse_type(rest4)
-  let spec = {
-    options,
-    width,
-    grouping: grouping.or_default(),
-    precision: precision.or(6),
-    typ,
-  }
+  let spec = { options, width, grouping: grouping.or_default(), precision, typ }
   (spec, rest5)
 }
 
@@ -281,7 +275,7 @@ test "parse_spec_precision" {
   }
   inspect(
     spec,
-    content="{options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: 2, typ: Float}",
+    content="{options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: Some(2), typ: Float}",
   )
 }
 
@@ -293,7 +287,7 @@ test "parse_spec_width" {
   }
   inspect(
     spec,
-    content="{options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}",
+    content="{options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}",
   )
 }
 
@@ -305,7 +299,7 @@ test "parse_format_part" {
   }
   inspect(
     part,
-    content="LocField(loc=3, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit})",
+    content="LocField(loc=3, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit})",
   )
   inspect(rest, content="")
 }
@@ -319,7 +313,7 @@ test "parse_fmt_string" {
   inspect(
     result,
     content=
-      #|[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: 6, typ: Digit}), Text(text=" {}")]
+      #|[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" {}")]
     ,
   )
 }

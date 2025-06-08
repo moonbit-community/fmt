@@ -59,3 +59,15 @@ test "example/6" {
     content="0b1000_0010_1100_1000_1111_101",
   )
 }
+
+///|
+test "example/7" {
+  inspect(fstring("{:d}", [42.5]), content="42")
+}
+
+///|
+test "example/8" {
+  inspect(fstring("{:e}", [42.5]), content="4.25e+1")
+  inspect(fstring("{:E}", [42.5]), content="4.25E+1")
+  inspect(fstring("{:%}", [42.5]), content="4250.00%")
+}

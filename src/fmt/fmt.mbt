@@ -87,69 +87,64 @@ fn trim_or_pad_decimal(value : String, precision : Int) -> String {
 
 ///|
 fn format_float(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
-  match value {
-    Json::Number(num) => {
-      let num_string = match spec.typ {
-        Float => trim_or_pad_decimal(ryu_to_string(num, false), spec.precision)
-        ExponentLower => ryu_to_string(num, true)
-        ExponentUpper => ryu_to_string(num, true, upper=true)
-        Percent => {
-          let percent_value = num * 100.0
-          trim_or_pad_decimal(
-            ryu_to_string(percent_value, false),
-            spec.precision,
-          ) +
-          "%"
-        }
-        _ => abort("Unsupported format type for float")
-      }
-
-      // Align the string according to the spec
-      align_string(spec, num_string, sb)
-    }
-    _ => abort("format_float expects a number")
+  if not(value is Json::Number(_)) {
+    abort("format_float expects a number")
   }
+  let value = value.as_number().unwrap()
+  let num_string = match spec.typ {
+    Float =>
+      trim_or_pad_decimal(ryu_to_string(value, false), spec.precision.or(6))
+    ExponentLower => ryu_to_string(value, true)
+    ExponentUpper => ryu_to_string(value, true, upper=true)
+    Percent => {
+      let percent_value = value * 100.0
+      trim_or_pad_decimal(
+        ryu_to_string(percent_value, false),
+        spec.precision.or(2),
+      ) +
+      "%"
+    }
+    _ => abort("Unsupported format type for float")
+  }
+  align_string(spec, num_string, sb)
 }
 
 ///|
 fn format_digit(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
-  match value {
-    Json::Number(num) => {
-      let num = num.to_int64()
-      let mut num_string = match spec.typ {
-        Binary => num.to_string(radix=2)
-        Octal => num.to_string(radix=8)
-        HexLower => num.to_string(radix=16)
-        HexUpper => num.to_string(radix=16).to_upper()
-        Digit => num.to_string()
-        _ => abort("Unsupported format type for digit")
-      }
-      if not(spec.grouping is Default) {
-
-        // Check if grouping is valid for the type
-        if spec.grouping is Comma && not(spec.typ is Digit) {
-          abort("Comma grouping is only supported for digit type")
-        }
-        let cnt = if spec.typ is Digit { 3 } else { 4 }
-        let new_num_string = StringBuilder::new()
-        for idx, char in num_string {
-          if idx > 0 && idx % cnt == 0 {
-            match spec.grouping {
-              Comma => new_num_string.write_char(',')
-              Underscore => new_num_string.write_char('_')
-              _ => ()
-            }
-          }
-          new_num_string.write_char(char)
-        }
-        num_string = new_num_string.to_string()
-      }
-
-      // Align the string according to the spec
-      align_string(spec, num_string, sb)
-    }
-    _ => abort("format_digit expects a number")
+  if not(value is Json::Number(_)) {
+    abort("format_digit expects a number")
   }
+  let value = value.as_number().unwrap().to_int64()
+  let mut num_string = match spec.typ {
+    Binary => value.to_string(radix=2)
+    Octal => value.to_string(radix=8)
+    HexLower => value.to_string(radix=16)
+    HexUpper => value.to_string(radix=16).to_upper()
+    Digit => value.to_string()
+    _ => abort("Unsupported format type for digit")
+  }
+  let digit_group = fn(grouping : Char, num_string : String, cnt : Int) {
+    let new_num_string = StringBuilder::new()
+    for idx, char in num_string {
+      if idx > 0 && idx % cnt == 0 {
+        new_num_string.write_char(grouping)
+      }
+      new_num_string.write_char(char)
+    }
+    new_num_string.to_string()
+  }
+  if spec.grouping is Default {
+    return align_string(spec, num_string, sb)
+  }
+  num_string = match (spec.grouping, spec.typ) {
+    (Comma, Digit) => digit_group(',', num_string, 3)
+    (Underscore, Digit) => digit_group('_', num_string, 3)
+    (Underscore, Octal | HexLower | HexUpper | Binary) =>
+      // For underscore grouping, we can apply it to binary, octal, and hex
+      digit_group('_', num_string, 4)
+    (_, _) => abort("Unsupported grouping for this type")
+  }
+  align_string(spec, num_string, sb)
 }
 
 ///|
