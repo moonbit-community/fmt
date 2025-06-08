@@ -46,12 +46,10 @@ test "example/4" {
 ///|
 test "example/5" {
   inspect(fstring("{:>>30}", ["test"]), content=">>>>>>>>>>>>>>>>>>>>>>test")
-  // inspect(fstring("{:<<30}", ["test"]), content="test<<<<<<<<<<<<<<<<<<<<<<")
-  // inspect(fstring("{:^^30}", ["test"]), content="^^^^^^^^^^^test^^^^^^^^^^^")
+  inspect(fstring("{:<<30}", ["test"]), content="test<<<<<<<<<<<<<<<<<<<<<<")
+  inspect(fstring("{:^^30}", ["test"]), content="^^^^^^^^^^^test^^^^^^^^^^^")
 }
 
-// 支持数字类型、二进制、八进制、十六进制的分隔符格式化
-// 数字类型每隔3位加一个分隔符，其它类型每隔4位加一个分隔符，逗号仅支持数字类型
 ///|
 test "example/6" {
   inspect(fstring("{:_d}", [4285565, 59]), content="428_556_5")

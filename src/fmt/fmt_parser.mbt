@@ -126,20 +126,20 @@ fn parse_options(input : str) -> (Options, str) {
 }
 
 ///|
-fn parse_digit(input : str) -> (Int?, str)!ParseError {
+fn parse_digit(input : str) -> (Int?, str) {
+  let mut result = 0
   let mut idx = 0
-  while input.length() > idx && input.char_at(idx).is_digit(10) {
+  for c in input {
+    if not(c.is_digit(10)) {
+      break
+    }
+    result = result * 10 + (Char::to_int(c) - '0')
     idx += 1
   }
   if idx == 0 {
     (None, input)
   } else {
-    let width_str = input.charcodes(start=0, end=idx).to_string()
-    let result = try? @strconv.parse_int(width_str, base=10)
-    match result {
-      Ok(width) => (Some(width), input.charcodes(start=idx))
-      Err(_) => raise ParseError("Invalid digit in format specifier")
-    }
+    (Some(result), input.charcodes(start=idx))
   }
 }
 
@@ -153,7 +153,7 @@ fn parse_grouping(input : str) -> (Grouping?, str) {
 }
 
 ///|
-fn parse_precision(input : str) -> (Int?, str)!ParseError {
+fn parse_precision(input : str) -> (Int?, str) {
   match input {
     ['.', .. input] => {
       let (prec, rest) = parse_digit(input)
@@ -180,7 +180,7 @@ fn parse_type(input : str) -> (SpecType, str) {
 }
 
 ///|
-fn parse_spec(input : str) -> (FormatSpec, str)!ParseError {
+fn parse_spec(input : str) -> (FormatSpec, str) {
   // 1. options
   let (options, rest1) = parse_options(input)
   // 2. width
@@ -201,9 +201,8 @@ fn parse_spec(input : str) -> (FormatSpec, str)!ParseError {
   (spec, rest5)
 }
 
-// TODO: support not digit identifiers
 ///|
-fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str)!ParseError {
+fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str) {
   let (loc, input) = parse_digit(input)
   let loc = loc.or(last)
   let default = LocField(loc~, spec=FormatSpec::default())
@@ -216,6 +215,8 @@ fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str)!ParseError {
   }
 }
 
+
+//TODO : refactor this to use combinators
 ///|
 fn parse_format_string(input : String) -> Array[FormatPart]!ParseError {
   let parts = Array::new()
@@ -223,6 +224,7 @@ fn parse_format_string(input : String) -> Array[FormatPart]!ParseError {
   let mut last = 0
   let chars = input[:]
   let buf = StringBuilder::new()
+
   while idx < chars.length() {
     let c = chars.char_at(idx)
     if c == '{' {
@@ -231,7 +233,7 @@ fn parse_format_string(input : String) -> Array[FormatPart]!ParseError {
         idx += 2
       } else {
         if not(buf.is_empty()) {
-          parts.push(FormatPart::Text(text=buf.to_string()))
+          parts.push(Text(text=buf.to_string()))
           buf.reset()
         }
         let mut end = idx + 1
@@ -268,7 +270,7 @@ fn parse_format_string(input : String) -> Array[FormatPart]!ParseError {
     }
   }
   if not(buf.is_empty()) {
-    parts.push(FormatPart::Text(text=buf.to_string()))
+    parts.push(Text(text=buf.to_string()))
   }
   parts
 }
