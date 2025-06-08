@@ -513,9 +513,11 @@ fn to_chars(
   v : FloatingDecimal64,
   sign : Bool,
   scientificNotation : Bool,
-  upper~ : Bool = false
+  upper~ : Bool = false,
+  default~ : Bool = false
 ) -> String {
   // Step 5: Print the decimal representation.
+  let mut scientificNotation = scientificNotation
   let result = FixedArray::make(25, Byte::default())
   let mut index : Int = 0
   if sign {
@@ -525,7 +527,9 @@ fn to_chars(
   let mut output = v.mantissa
   let olength = decimal_length17(output)
   let mut exp : Int = v.exponent + olength - 1
-  // let scientificNotation = not(exp >= -6 && exp < 21)
+  if default {
+    scientificNotation = not(exp >= -6 && exp < 21)
+  }
   if scientificNotation {
     // Print the decimal digits.
     for i in 0..<(olength - 1) {
@@ -646,7 +650,8 @@ fn d2d_small_int(
 fn ryu_to_string(
   val : Double,
   scientificNotation : Bool,
-  upper~ : Bool = false
+  upper~ : Bool = false,
+  default~ : Bool = false
 ) -> String {
   if val == 0.0 {
     return "0"
@@ -683,7 +688,7 @@ fn ryu_to_string(
     }
     None => v = d2d(ieeeMantissa, ieeeExponent.reinterpret_as_uint())
   }
-  to_chars(v, ieeeSign, scientificNotation, upper~)
+  to_chars(v, ieeeSign, scientificNotation, upper~, default~)
 }
 
 ///|

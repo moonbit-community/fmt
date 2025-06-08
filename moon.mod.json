@@ -6,5 +6,8 @@
   "license": "Apache-2.0",
   "keywords": ["fmt", "formatting", "string"],
   "description": "A simple and efficient string formatting library for MoonBit.",
-  "source": "src"
+  "source": "src",
+  "include": [
+    "README_zh_CN.md"
+  ]
 }

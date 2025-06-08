@@ -67,7 +67,7 @@ fstring("{:#_b}", [4285565, 3])         // "0b1000_0010_1100_1000_1111_101"
 | `{:05}`          | Width 5, left pad with 0              | `00042`                                |
 | `{:>10}`         | Width 10, right align                 | `     test`                            |
 | `{:<10}`         | Width 10, left align                  | `test     `                            |
-| `{:^10}`         | Width 10, center align                | ` test `                               |
+| `{:^10}`         | Width 10, center align                | `test`                                 |
 | `{:*^10}`        | Center align, fill with `*`           | `***test***`                           |
 | `{:b}` / `{:#b}` | Binary / with prefix                  | `10000` / `0b10000`                    |
 | `{:o}` / `{:#o}` | Octal / with prefix                   | `10` / `0o10`                          |
