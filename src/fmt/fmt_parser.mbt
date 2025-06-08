@@ -201,33 +201,19 @@ fn parse_spec(input : str) -> (FormatSpec, str)!ParseError {
   (spec, rest5)
 }
 
+// TODO: support not digit identifiers
 ///|
 fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str)!ParseError {
-  let input = input.trim(" ")
-  if input.length() == 0 {
-    return (FormatPart::LocField(loc=last, spec=FormatSpec::default()), input)
-  }
-  let (loc, rest1) = parse_digit(input)
-  if rest1.length() == 0 || rest1.char_at(0) != ':' {
-    if loc.is_empty() {
-      return (FormatPart::LocField(loc=last, spec=FormatSpec::default()), rest1)
-    } else {
-      return (
-        FormatPart::LocField(loc=loc.unwrap(), spec=FormatSpec::default()),
-        rest1,
-      )
+  let (loc, input) = parse_digit(input)
+  let loc = loc.or(last)
+  let default = LocField(loc~, spec=FormatSpec::default())
+  match input {
+    [':', .. input] => {
+      let (spec, input) = parse_spec(input)
+      (LocField(loc~, spec~), input)
     }
+    [..] => (default, input)
   }
-  let rest2 = rest1.charcodes(start=1).trim(" ")
-  let (part, rest3) = match parse_spec(rest2) {
-    (spec, rest) =>
-      if loc.is_empty() {
-        (FormatPart::LocField(loc=last, spec~), rest)
-      } else {
-        (FormatPart::LocField(loc=loc.unwrap(), spec~), rest)
-      }
-  }
-  return (part, rest3)
 }
 
 ///|
