@@ -90,161 +90,107 @@ enum FormatPart {
 } derive(Show)
 
 ///|
-fn parse_options(input : str) -> Result[(Options, str), ParseError] {
-  let mut fill : Char? = None
-  let mut align : Align = Left
-  let mut sharp = false
-  let mut zero = false
-  let mut idx = 0
-  if input.length() > idx + 1 {
-    let next = input.char_at(idx + 1)
-    match next {
-      '<' | '>' | '^' => {
-        fill = Some(input.char_at(idx))
-        align = match next {
-          '<' => Align::Left
-          '>' => Align::Right
-          '^' => Align::Center
-          _ => Align::Left
-        }
-        idx += 2
-      }
-      _ => ()
-    }
+fn match_align_char(c : Char) -> Align {
+  match c {
+    '<' => Align::Left
+    '>' => Align::Right
+    '^' => Align::Center
+    _ => Align::Left
   }
-  if fill.is_empty() && input.length() > idx {
-    match input.char_at(idx) {
-      '<' => {
-        align = Align::Left
-        idx += 1
-      }
-      '>' => {
-        align = Align::Right
-        idx += 1
-      }
-      '^' => {
-        align = Align::Center
-        idx += 1
-      }
-      _ => ()
-    }
-  }
-  while input.length() > idx {
-    match input.char_at(idx) {
-      '#' => {
-        sharp = true
-        idx += 1
-      }
-      '0' => {
-        zero = true
-        idx += 1
-      }
-      _ => break
-    }
-  }
-  let options = { fill, align, sharp, zero }
-  if options.is_empty() {
-    return Ok((options, input))
-  }
-  Ok((options, input.charcodes(start=idx)))
 }
 
 ///|
-fn parse_digit(input : str) -> Result[(Int?, str), ParseError] {
+fn is_align_char(c : Char) -> Bool {
+  return ['<', '>', '^'].contains(c)
+}
+
+///|
+fn parse_fill_align(input : str) -> (Char?, Align, str) {
+  match input {
+    [any, align_c, .. input] if is_align_char(align_c) =>
+      (Some(any), match_align_char(align_c), input)
+    [align_c, .. chars] if is_align_char(align_c) =>
+      (None, match_align_char(align_c), chars)
+    [..] => (None, Left, input)
+  }
+}
+
+///|
+fn parse_options(input : str) -> (Options, str) {
+  let (fill, align, input) = parse_fill_align(input)
+  match input {
+    ['#', .. chars] => ({ fill, align, sharp: true, zero: true }, chars)
+    ['0', .. chars] => ({ fill, align, sharp: false, zero: true }, chars)
+    [..] => ({ fill, align, sharp: false, zero: false }, input)
+  }
+}
+
+///|
+fn parse_digit(input : str) -> (Int?, str)!ParseError {
   let mut idx = 0
   while input.length() > idx && input.char_at(idx).is_digit(10) {
-    // println(input.char_at(idx))
     idx += 1
   }
   if idx == 0 {
-    Ok((None, input))
+    (None, input)
   } else {
     let width_str = input.charcodes(start=0, end=idx).to_string()
     let result = try? @strconv.parse_int(width_str, base=10)
-    // println(result)
     match result {
-      Ok(width) => Ok((Some(width), input.charcodes(start=idx)))
-      Err(_) => Err(ParseError("Invalid digit: " + width_str))
+      Ok(width) => (Some(width), input.charcodes(start=idx))
+      Err(_) => raise ParseError("Invalid digit in format specifier")
     }
   }
 }
 
 ///|
-fn parse_grouping(input : str) -> Result[(Grouping?, str), ParseError] {
-  if input.length() == 0 {
-    return Ok((None, input))
-  }
-  match input.char_at(0) {
-    ',' => Ok((Some(Grouping::Comma), input.charcodes(start=1)))
-    '_' => Ok((Some(Grouping::Underscore), input.charcodes(start=1)))
-    _ => Ok((None, input))
+fn parse_grouping(input : str) -> (Grouping?, str) {
+  match input {
+    [',', .. chars] => return (Some(Grouping::Comma), chars)
+    ['_', .. chars] => return (Some(Grouping::Underscore), chars)
+    [..] => return (None, input)
   }
 }
 
 ///|
-fn parse_precision(input : str) -> Result[(Int?, str), ParseError] {
-  if input.length() > 0 && input.char_at(0) == '.' {
-    let rest = input.charcodes(start=1)
-    let result = parse_digit(rest)
-    match result {
-      Ok((Some(prec), rest2)) => return Ok((Some(prec), rest2))
-      Ok((None, rest2)) => return Ok((None, rest2))
-      Err(e) => return Err(e)
+fn parse_precision(input : str) -> (Int?, str)!ParseError {
+  match input {
+    ['.', .. input] => {
+      let (prec, rest) = parse_digit(input)
+      (prec, rest)
     }
-  } else {
-    Ok((None, input))
+    _ => (None, input)
   }
 }
 
 ///|
-fn parse_type(input : str) -> Result[(SpecType, str), ParseError] {
-  if input.length() == 0 {
-    return Ok((SpecType::Default, input))
-  }
-  match input.char_at(0) {
-    'b' => Ok((Binary, input.charcodes(start=1)))
-    'd' => Ok((Digit, input.charcodes(start=1)))
-    'e' => Ok((ExponentLower, input.charcodes(start=1)))
-    'E' => Ok((ExponentUpper, input.charcodes(start=1)))
-    'f' => Ok((Float, input.charcodes(start=1)))
-    'o' => Ok((Octal, input.charcodes(start=1)))
-    'x' => Ok((HexLower, input.charcodes(start=1)))
-    'X' => Ok((HexUpper, input.charcodes(start=1)))
-    '%' => Ok((Percent, input.charcodes(start=1)))
-    _ => Ok((Default, input))
+fn parse_type(input : str) -> (SpecType, str) {
+  match input {
+    ['b', .. input] => (Binary, input)
+    ['d', .. input] => (Digit, input)
+    ['e', .. input] => (ExponentLower, input)
+    ['E', .. input] => (ExponentUpper, input)
+    ['f', .. input] => (Float, input)
+    ['o', .. input] => (Octal, input)
+    ['x', .. input] => (HexLower, input)
+    ['X', .. input] => (HexUpper, input)
+    ['%', .. input] => (Percent, input)
+    _ => (Default, input)
   }
 }
 
 ///|
-fn parse_spec(input : str) -> Result[(FormatSpec, str), ParseError] {
+fn parse_spec(input : str) -> (FormatSpec, str)!ParseError {
   // 1. options
-  let (options, rest1) = match parse_options(input) {
-    Ok((options, rest1)) => (options, rest1)
-    Err(e) => return Err(e)
-  }
-
+  let (options, rest1) = parse_options(input)
   // 2. width
-  let (width, rest2) = match parse_digit(rest1) {
-    Ok((width, rest)) => (width, rest)
-    Err(e) => return Err(e)
-  }
-
+  let (width, rest2) = parse_digit(rest1)
   // 3. grouping
-  let (grouping, rest3) = match parse_grouping(rest2) {
-    Ok((grouping, rest)) => (grouping, rest)
-    Err(e) => return Err(e)
-  }
-
+  let (grouping, rest3) = parse_grouping(rest2)
   // 4. precision
-  let (precision, rest4) = match parse_precision(rest3) {
-    Ok((precision, rest)) => (precision, rest)
-    Err(e) => return Err(e)
-  }
+  let (precision, rest4) = parse_precision(rest3)
   // 5. type
-  let (typ, rest5) = match parse_type(rest4) {
-    Ok((typ, rest)) => (typ, rest)
-    Err(e) => return Err(e)
-  }
+  let (typ, rest5) = parse_type(rest4)
   let spec = {
     options,
     width,
@@ -252,53 +198,40 @@ fn parse_spec(input : str) -> Result[(FormatSpec, str), ParseError] {
     precision: precision.or(6),
     typ,
   }
-  Ok((spec, rest5))
+  (spec, rest5)
 }
 
 ///|
-fn parse_format_part(
-  input : str,
-  last~ : Int
-) -> Result[(FormatPart, str), ParseError] {
+fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str)!ParseError {
   let input = input.trim(" ")
   if input.length() == 0 {
-    return Ok(
-      (FormatPart::LocField(loc=last, spec=FormatSpec::default()), input),
-    )
+    return (FormatPart::LocField(loc=last, spec=FormatSpec::default()), input)
   }
-  let (loc, rest1) = match parse_digit(input) {
-    Ok((width, rest)) => (width, rest)
-    Err(_) => (None, input)
-  }
+  let (loc, rest1) = parse_digit(input)
   if rest1.length() == 0 || rest1.char_at(0) != ':' {
     if loc.is_empty() {
-      return Ok(
-        (FormatPart::LocField(loc=last, spec=FormatSpec::default()), rest1),
-      )
+      return (FormatPart::LocField(loc=last, spec=FormatSpec::default()), rest1)
     } else {
-      return Ok(
-        (
-          FormatPart::LocField(loc=loc.unwrap(), spec=FormatSpec::default()),
-          rest1,
-        ),
+      return (
+        FormatPart::LocField(loc=loc.unwrap(), spec=FormatSpec::default()),
+        rest1,
       )
     }
   }
   let rest2 = rest1.charcodes(start=1).trim(" ")
   let (part, rest3) = match parse_spec(rest2) {
-    Ok((spec, rest)) =>
+    (spec, rest) =>
       if loc.is_empty() {
         (FormatPart::LocField(loc=last, spec~), rest)
       } else {
         (FormatPart::LocField(loc=loc.unwrap(), spec~), rest)
       }
-    Err(e) => return Err(e)
   }
-  return Ok((part, rest3))
+  return (part, rest3)
 }
 
 ///|
-fn parse_format_string(input : String) -> Result[Array[FormatPart], ParseError] {
+fn parse_format_string(input : String) -> Array[FormatPart]!ParseError {
   let parts = Array::new()
   let mut idx = 0
   let mut last = 0
@@ -325,16 +258,15 @@ fn parse_format_string(input : String) -> Result[Array[FormatPart], ParseError] 
           end += 1
         }
         if not(found) {
-          return Err(ParseError("Unmatched '{' in format string"))
+          raise ParseError("Unmatched '{' in format string")
         }
         let part_input = chars.charcodes(start=idx + 1, end~)
         match parse_format_part(part_input, last~) {
-          Ok((part, _)) => {
+          (part, _) => {
             parts.push(part)
             idx = end + 1
             last += 1
           }
-          Err(e) => return Err(e)
         }
       }
     } else if c == '}' {
@@ -342,7 +274,7 @@ fn parse_format_string(input : String) -> Result[Array[FormatPart], ParseError] 
         buf.write_char('}')
         idx += 2
       } else {
-        return Err(ParseError("Unmatched '}' in format string"))
+        raise ParseError("Unmatched '}' in format string")
       }
     } else {
       buf.write_char(c)
@@ -352,18 +284,14 @@ fn parse_format_string(input : String) -> Result[Array[FormatPart], ParseError] 
   if not(buf.is_empty()) {
     parts.push(FormatPart::Text(text=buf.to_string()))
   }
-  Ok(parts)
+  parts
 }
 
 ///|
 test "parse_spec_precision" {
   let input = ".2f"
   let (spec, _) = match parse_spec(input[:]) {
-    Err(err) => {
-      println(err.to_string())
-      abort(err.to_string())
-    }
-    Ok(result) => result
+    result => result
   }
   inspect(
     spec,
@@ -375,11 +303,7 @@ test "parse_spec_precision" {
 test "parse_spec_width" {
   let input = "10d"
   let (spec, _) = match parse_spec(input[:]) {
-    Err(err) => {
-      println(err.to_string())
-      abort(err.to_string())
-    }
-    Ok(result) => result
+    result => result
   }
   inspect(
     spec,
@@ -391,8 +315,7 @@ test "parse_spec_width" {
 test "parse_format_part" {
   let input = "3:10d"
   let (part, rest) = match parse_format_part(input[:], last=0) {
-    Ok(result) => result
-    Err(e) => abort(e.to_string())
+    result => result
   }
   inspect(
     part,
@@ -405,8 +328,7 @@ test "parse_format_part" {
 test "parse_fmt_string" {
   let input = "{:10d} {0:10d} {1:10d} {{}}"
   let result = match parse_format_string(input) {
-    Ok(parts) => parts
-    Err(e) => abort(e.to_string())
+    parts => parts
   }
   inspect(
     result,

@@ -164,7 +164,7 @@ pub fn format(parts : Array[FormatPart], values : Array[Json]) -> String {
 
 ///|
 pub fn fprintln(parts : String, values : Json) -> Unit {
-  let parts = parse_format_string(parts)
+  let parts = try? parse_format_string(parts)
   // println("fprintln called with parts: " + parts.to_string())
   match values {
     Json::Array(_) => ()
@@ -182,7 +182,8 @@ pub fn fprintln(parts : String, values : Json) -> Unit {
 
 ///|
 pub fn fstring(parts : String, values : Json) -> String {
-  let parts = parse_format_string(parts)
+  let parts = try? parse_format_string(parts) 
+  // println("fstring called with parts: " + parts.to_string())
   match values {
     Json::Array(_) => ()
     _ => abort("fprintln expects an array of values")
