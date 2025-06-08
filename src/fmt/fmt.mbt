@@ -182,7 +182,7 @@ pub fn fprintln(parts : String, values : Json) -> Unit {
 
 ///|
 pub fn fstring(parts : String, values : Json) -> String {
-  let parts = try? parse_format_string(parts) 
+  let parts = try? parse_format_string(parts)
   // println("fstring called with parts: " + parts.to_string())
   match values {
     Json::Array(_) => ()

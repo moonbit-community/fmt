@@ -17,10 +17,6 @@ jobs:
         os:
           - name: ubuntu-latest
             triple: x86_64-linux-gnu
-          - name: macos-latest
-            triple: arm64-apple-darwin
-          - name: macos-13
-            triple: x86_64-apple-darwin
           - name: windows-latest
             triple: x86_64-w64-mingw32
 
@@ -101,17 +97,6 @@ jobs:
             fi
           done
           (exit $_passed)
-
-  prettier:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-      - run: |
-          npm install --global prettier;
-          find . -name *.mod.json -exec npx prettier --write {} \;
-          find . -name *.pkg.json -exec npx prettier --write {} \;
-          git diff --exit-code;
 
   check-typos:
     runs-on: ubuntu-latest

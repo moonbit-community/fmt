@@ -215,7 +215,6 @@ fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str) {
   }
 }
 
-
 //TODO : refactor this to use combinators
 ///|
 fn parse_format_string(input : String) -> Array[FormatPart]!ParseError {
@@ -224,7 +223,6 @@ fn parse_format_string(input : String) -> Array[FormatPart]!ParseError {
   let mut last = 0
   let chars = input[:]
   let buf = StringBuilder::new()
-
   while idx < chars.length() {
     let c = chars.char_at(idx)
     if c == '{' {

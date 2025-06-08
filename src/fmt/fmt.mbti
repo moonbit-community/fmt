@@ -1,5 +1,9 @@
 package "BigOrangeQWQ/fmt/fmt"
 
+import(
+  "moonbitlang/core/string"
+)
+
 // Values
 fn format(Array[FormatPart], Array[Json]) -> String
 
@@ -11,9 +15,24 @@ fn fstring(String, Json) -> String
 type FormatPart
 impl Show for FormatPart
 
+pub struct Input {
+  chars : @string.StringView
+  offset : Int
+}
+fn Input::new(@string.StringView) -> Self
+fn Input::satisfy((Char) -> Bool) -> Parser[Char]
+
 pub type! ParseError String
 impl Eq for ParseError
 impl Show for ParseError
+
+pub type! ParseErrorX {
+  Expect(offset~ : Int, message~ : String)
+  Many(Array[ParseError])
+}
+impl Show for ParseErrorX
+
+pub type Parser[A] (Input) -> (A, Input)!ParseErrorX
 
 // Type aliases
 
