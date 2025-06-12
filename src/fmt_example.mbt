@@ -1,5 +1,5 @@
 ///|
-struct TestObj {
+priv struct TestObj {
   name : String
   age : Int
 } derive(ToJson, FromJson)
