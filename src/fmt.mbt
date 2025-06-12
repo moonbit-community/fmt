@@ -62,28 +62,6 @@ fn align_string(spec : FormatSpec, value : String, sb : StringBuilder) -> Unit {
 }
 
 ///|
-fn trim_or_pad_decimal(value : String, precision : Int) -> String {
-  let sb = StringBuilder::new()
-  if precision < 0 {
-    return value
-  }
-  let parts = value.split(".").map(@string.View::to_string).collect()
-  sb.write_string(parts[0])
-  sb.write_char('.')
-  if parts.length() == 1 {
-    sb.write_string("0".pad_end(precision, '0'))
-    return sb.to_string()
-  }
-  let decimal_part = parts[1]
-  if decimal_part.length() > precision {
-    sb.write_string(decimal_part.charcodes(end=precision).to_string())
-  } else {
-    sb.write_string(decimal_part.pad_end(precision, '0'))
-  }
-  sb.to_string()
-}
-
-///|
 fn format_float(spec : FormatSpec, value : Json) -> String {
   if not(value is Json::Number(_)) {
     abort("format_float expects a number")
