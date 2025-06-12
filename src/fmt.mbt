@@ -4,25 +4,23 @@ fn format_part(part : FormatPart, values : Array[Json]) -> String {
   match part {
     LocField(loc~, spec~) => {
       let value = values[loc]
-      match spec.typ {
+      let string = match spec.typ {
         Digit | Binary | Octal | HexLower | HexUpper =>
-          format_digit(spec, value, sb)
+          format_digit(spec, value)
         Float | ExponentLower | ExponentUpper | Percent =>
-          format_float(spec, value, sb)
+          format_float(spec, value)
         Default =>
           match value {
-            Json::String(s) => align_string(spec, s, sb)
-            Json::Number(n) => {
-              let num_string = n.to_string()
-              align_string(spec, num_string, sb)
-            }
-            Json::True => align_string(spec, "true", sb)
-            Json::False => align_string(spec, "false", sb)
-            Json::Null => align_string(spec, "None", sb)
-            Json::Array(arr) => align_string(spec, arr.to_string(), sb)
-            Json::Object(obj) => align_string(spec, obj.to_string(), sb)
+            Json::String(s) => s
+            Json::Number(n) => n.to_string()
+            Json::True => "true"
+            Json::False => "false"
+            Json::Null => "None"
+            Json::Array(arr) => arr.to_string()
+            Json::Object(obj) => obj.to_string()
           }
       }
+      align_string(spec, string, sb)
     }
     Text(text~) => sb.write_string(text)
   }
@@ -86,20 +84,22 @@ fn trim_or_pad_decimal(value : String, precision : Int) -> String {
 }
 
 ///|
-fn format_float(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
+fn format_float(spec : FormatSpec, value : Json) -> String {
   if not(value is Json::Number(_)) {
     abort("format_float expects a number")
   }
   let value = value.as_number().unwrap()
-  let num_string = match spec.typ {
+  let doble_string = match spec.typ {
     Float =>
-      if spec.precision.is_empty() {
-        @ryu.ryu_to_string(value, false, default=true)
+      if not(spec.precision is None) {
+        @ryu.ryu_to_string_precision(value, precision=spec.precision.unwrap())
       } else {
-        @ryu.ryu_to_string_precision(value, precision=spec.precision.or(6))
+        value.to_string() // Default is JavaScript specific
       }
-    ExponentLower => @ryu.ryu_to_string(value, true)
-    ExponentUpper => @ryu.ryu_to_string(value, true, upper=true)
+    ExponentLower =>
+      @ryu.ryu_to_string_exp(value, precision=spec.precision.or(6), upper=false)
+    ExponentUpper =>
+      @ryu.ryu_to_string_exp(value, precision=spec.precision.or(6), upper=true)
     Percent => {
       let percent_value = value * 100.0
       trim_or_pad_decimal(
@@ -110,11 +110,11 @@ fn format_float(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
     }
     _ => abort("Unsupported format type for float")
   }
-  align_string(spec, num_string, sb)
+  doble_string
 }
 
 ///|
-fn format_digit(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
+fn format_digit(spec : FormatSpec, value : Json) -> String {
   if not(value is Json::Number(_)) {
     abort("format_digit expects a number")
   }
@@ -138,7 +138,7 @@ fn format_digit(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
     new_num_string.to_string()
   }
   if spec.grouping is Default {
-    return align_string(spec, num_string, sb)
+    return num_string
   }
   num_string = match (spec.grouping, spec.typ) {
     (Comma, Digit) => digit_group(',', num_string, 3)
@@ -148,7 +148,7 @@ fn format_digit(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
       digit_group('_', num_string, 4)
     (_, _) => abort("Unsupported grouping for this type")
   }
-  align_string(spec, num_string, sb)
+  num_string
 }
 
 ///|

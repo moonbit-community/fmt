@@ -3,6 +3,8 @@ package "BigOrangeQWQ/fmt/ryu"
 // Values
 fn ryu_to_string(Double, Bool, upper~ : Bool = .., default~ : Bool = ..) -> String
 
+fn ryu_to_string_exp(Double, precision~ : Int = .., upper~ : Bool = ..) -> String
+
 fn ryu_to_string_precision(Double, precision~ : Int = ..) -> String
 
 // Types and methods
