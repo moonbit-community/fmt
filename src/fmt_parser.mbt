@@ -1,5 +1,5 @@
 ///|
-pub type! ParseError String derive(Eq, Show)
+pub suberror ParseError String derive(Eq, Show)
 
 ///|
 typealias @string.View as str
@@ -211,7 +211,7 @@ fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str) {
 
 //TODO : refactor this to use combinators
 ///|
-fn parse_format_string(input : String) -> Array[FormatPart]!ParseError {
+fn parse_format_string(input : String) -> Array[FormatPart] raise ParseError {
   let parts = Array::new()
   let mut idx = 0
   let mut last = 0

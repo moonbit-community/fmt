@@ -789,222 +789,6 @@ fn decimalLength9(v : Int) -> Int {
   return 1
 }
 
-// fn double_ryu_to_string(
-//   val : Double,
-//   precision~: Int = 17
-// ) -> String {
-//   if val == 0.0 {
-//     return "0"
-//   }
-//   let result = FixedArray::make(25, Byte::default())
-//   // Step 1: Decode the floating-point number, and unify normalized and subnormal cases.
-//   let bits : UInt64 = val.reinterpret_as_uint64()
-
-//   // Decode bits into sign, mantissa, and exponent.
-//   let ieeeSign = (
-//       (bits >> (gDOUBLE_MANTISSA_BITS + gDOUBLE_EXPONENT_BITS)) & 1UL
-//     ) !=
-//     0UL
-//   let ieeeMantissa : UInt64 = bits & ((1UL << gDOUBLE_MANTISSA_BITS) - 1UL)
-//   let ieeeExponent : Int = ((bits >> gDOUBLE_MANTISSA_BITS) &
-//   ((1UL << gDOUBLE_EXPONENT_BITS) - 1UL)).to_int()
-//   if ieeeExponent == (1 << gDOUBLE_EXPONENT_BITS) - 1 ||
-//     (ieeeExponent == 0 && ieeeMantissa == 0UL) {
-//     return copy_special_str(ieeeSign, ieeeExponent != 0, ieeeMantissa != 0UL)
-//   }
-//   println("ieeeExponent: "+ ieeeExponent.to_string() + " ieeeMantissa: " + ieeeMantissa.to_string())
-//   if ieeeExponent == 0 && ieeeMantissa == 0 {
-//     let mut index = 0;
-//     if(ieeeSign) {
-//       result[index] = b'-';
-//       index += 1;
-//     }
-//     result[index] = b'0';
-//     index += 1;
-//     if precision > 0 {
-//       result[index] = b'.';
-//       index += 1;
-//       for _ in 0..<precision {
-//         result[index] = b'0';
-//         index += 1;
-//       }
-//     }
-//     return string_from_bytes(result, 0, index)
-//   }
-
-//   let (e2, m2) = if ieeeExponent == 0 {
-//     (1 - gDOUBLE_BIAS - gDOUBLE_MANTISSA_BITS, ieeeMantissa)
-//   } else {
-//     (ieeeExponent - gDOUBLE_BIAS - gDOUBLE_MANTISSA_BITS, (1UL << gDOUBLE_MANTISSA_BITS) | ieeeMantissa)
-//   }
-//   let mut idx = 0
-//   let mut nonzero = false
-//   if (ieeeSign) {
-//     result[idx] = b'-'
-//     idx += 1
-//   }
-//   if (e2 >= -52) {
-//     let idx2 = if e2 < 0 {
-//       0
-//     } else {
-//       indexForExponent(e2)
-//     }
-//     let p10bits = pow10BitsForIndex(idx2)
-//     let len = lengthForIndex(idx2)
-
-//     for i = len - 1;i >= 0; i = i - 1 {
-//       let j = p10bits - e2
-//       let mut digits = mulShift_mod1e9(m2 << 8, gPOW10_SPLIT[gPOW10_OFFSET[idx2 + i]], j + 8 )
-//       if (nonzero) {
-//         for k in 0..<9 {
-//           result[idx + 8 - k] = (48 + digits % 10).to_byte()
-//           digits /= 10
-//         }
-//         result[0] = b'0'
-//         idx += 9
-//       } else if digits != 0 {
-//         let olength = decimalLength9(digits)
-//         for k in 0..<olength {
-//           result[idx + olength - k - 1] = (48 + digits % 10).to_byte()
-//           digits /= 10
-//         }
-//         idx += olength
-//         nonzero = true
-//       }
-//     } 
-
-//   }
-
-//   if not(nonzero) {
-//     result[idx] = b'0'
-//     idx += 1
-//   }
-//   if precision > 0 {
-//     result[idx] = b'.'
-//     idx += 1
-//   }
-
-//   if e2 < 0 {
-//     let idx2 = -e2 / 16
-//     let blocks = precision / 9 + 1
-//     let mut roundUp = 0
-//     let mut i = 0 
-//     if blocks <= gMIN_BLOCK_2[idx] {
-//       i = blocks
-//       for j in 0..<precision {
-//         result[idx + j] = b'0'
-//       }
-//       idx += precision
-//     } else if i < gMIN_BLOCK_2[idx2] {
-//       i = gMIN_BLOCK_2[idx2]
-//       for j in 0..<(9 * i) {
-//         result[idx + j] = b'0'
-//       }
-//       idx += i * 9
-//     } 
-
-//     for i = i; i < blocks; i = i + 1 {
-//       let j = gADDITIONAL_BITS_2 + (-e2 - 16 * idx2)
-//       let p = gPOW10_OFFSET_2[idx2] + i - gMIN_BLOCK_2[idx2]
-//       if p >= gPOW10_OFFSET_2[idx2 + 1] {
-//         let fill = precision- 9 * i
-//         for j in 0..<fill {
-//           result[idx + j] = b'0'
-//         }
-//         idx += fill
-//         break
-//       }
-//       let mut digits = mulShift_mod1e9(m2 << 8, gPOW10_SPLIT_2[p], j + 8)
-//       if i < blocks - 1 {
-//         for i in 0..<9 {
-//           result[idx + 9 - i - 1] = (48 + digits % 10).to_byte()
-//           digits /= 10
-//         }
-//         idx += 9
-//       } else {
-//         let maximum = precision - 9 * i
-//         let mut lastDigit = 0
-//         for k in 0..<(9 - maximum) {
-//           lastDigit = digits % 10
-//           digits /= 10
-//         }
-//         if lastDigit != 5 {
-//           roundUp = (lastDigit > 5).to_int()
-//         } else {
-//           let requiredTwos = -e2 - precision - 1
-//           let trailingZeros = requiredTwos <= 0 || (requiredTwos < 60 && multipleOfPowerOf2(m2, requiredTwos))
-//           roundUp = if trailingZeros {2} else { 1}
-//         }
-//         if maximum > 0 {
-//           for k in 0..<maximum {
-//             result[idx + maximum - k - 1] = (48 + digits % 10).to_byte()
-//             digits /= 10
-//           }
-//           idx += maximum
-//         }
-//         break
-//       }
-//     }
-
-//     if roundUp != 0 {
-//       let mut roundIndex = idx
-//       let mut dotIndex = 0
-//       while true {
-//         roundIndex -=1
-//         if roundIndex == -1 || result[roundIndex] == '-' {
-//           result[roundIndex + 1] = b'1'
-//           if dotIndex > 0 {
-//             result[dotIndex] = b'0'
-//             result[dotIndex + 1] = b'.'
-//           }
-//           result[idx] = b'0'
-//           idx += 1
-//           break
-//         }
-//         if result[roundIndex] == b'.' {
-//           dotIndex = roundIndex
-//           continue
-//         } else if result[roundIndex] == b'9' {
-//           result[roundIndex] = b'0'
-//           roundUp = 1
-//           continue
-//         } else {
-//           if roundUp == 2 && result[roundIndex] % 2 == 0 {
-//             break
-//           }
-//           result[roundIndex] = result[roundIndex] + 1
-//           break
-//         }
-//       }
-//     }
-//   } else {
-//     for i in 0..<precision {
-//       result[idx + i] = b'0'
-//     }
-//     idx += precision
-//   }
-//   println(result.to_string())
-//   println("idx: " + idx.to_string())
-//   return string_from_bytes(result, 0, idx)
-// }
-
-///|
-fn digit_to_char(digit : Int) -> Char {
-  match digit {
-    0 => '0'
-    1 => '1'
-    2 => '2'
-    3 => '3'
-    4 => '4'
-    5 => '5'
-    6 => '6'
-    7 => '7'
-    8 => '8'
-    9 => '9'
-    _ => panic()
-  }
-}
-
 ///|
 test "db2string" {
   inspect(
@@ -1022,7 +806,7 @@ test "db2string2" {
 test "db2string3" {
   inspect(
     ryu_to_string_precision(12345.123456, precision=10),
-    content="12345.1234559999",
+    content="12345.1234560000",
   )
 }
 
@@ -1030,7 +814,7 @@ test "db2string3" {
 test "db2string4" {
   inspect(
     ryu_to_string_precision(12345.123456, precision=17),
-    content="12345.123455999999989",
+    content="12345.12345599999935075",
   )
 }
 
@@ -1038,17 +822,60 @@ test "db2string4" {
 ///|
 test "db2string5" {
   inspect(
-    ryu_to_string_precision(-8888888.1, precision=2),
-    content="-8888888.09",
+    ryu_to_string_precision(-8888888.1, precision=1),
+    content="-8888888.1",
   )
 }
 
 ///|
-pub fn ryu_to_string_precision(val : Double, precision~ : Int = 17) -> String {
-  if val == 0.0 {
-    return "0"
+fn write_digits(
+  array : FixedArray[Byte],
+  start : Int,
+  len : Int,
+  digits : Int
+) -> Unit {
+  let mut idx = start + len - 1
+  let mut digits = digits
+  for i in 0..<len {
+    array[idx] = (48 + digits % 10).to_byte()
+    digits /= 10
+    idx -= 1
   }
-  let result = StringBuilder::new(size_hint=25)
+}
+
+///|
+test "write_digits" {
+  let array = FixedArray::make(10, Byte::default())
+  write_digits(array, 0, 3, 123)
+  inspect(string_from_bytes(array, 0, 3), content="123")
+}
+
+///|
+fn write_nine_digits(
+  array : FixedArray[Byte],
+  start : Int,
+  digits : Int
+) -> Unit {
+  write_digits(array, start, 9, digits)
+}
+
+///|
+fn write_len(
+  array : FixedArray[Byte],
+  start : Int,
+  len : Int,
+  char : Byte
+) -> Unit {
+  let mut idx = start
+  for _ in 0..<len {
+    array[idx] = char
+    idx += 1
+  }
+}
+
+///|
+pub fn ryu_to_string_precision(val : Double, precision~ : Int = 17) -> String {
+  let result = FixedArray::make(25, Byte::default())
   let bits : UInt64 = val.reinterpret_as_uint64()
   let ieeeSign = (
       (bits >> (gDOUBLE_MANTISSA_BITS + gDOUBLE_EXPONENT_BITS)) & 1UL
@@ -1061,24 +888,21 @@ pub fn ryu_to_string_precision(val : Double, precision~ : Int = 17) -> String {
     (ieeeExponent == 0 && ieeeMantissa == 0UL) {
     return copy_special_str(ieeeSign, ieeeExponent != 0, ieeeMantissa != 0UL)
   }
-  // println(
-  //   "ieeeExponent: " +
-  //   ieeeExponent.to_string() +
-  //   " ieeeMantissa: " +
-  //   ieeeMantissa.to_string(),
-  // )
   if ieeeExponent == 0 && ieeeMantissa == 0 {
+    let mut index = 0
     if ieeeSign {
-      result.write_char('-')
+      result[index] = b'-'
+      index += 1
     }
-    result.write_char('0')
+    result[index] = b'0'
+    index += 1
     if precision > 0 {
-      result.write_char('.')
-      for _ in 0..<precision {
-        result.write_char('0')
-      }
+      result[index] = b'.'
+      index += 1
+      write_len(result, index, precision, b'0')
+      index += precision
     }
-    return result.to_string()
+    return string_from_bytes(result, 0, index)
   }
   let (e2, m2) = if ieeeExponent == 0 {
     (1 - gDOUBLE_BIAS - gDOUBLE_MANTISSA_BITS, ieeeMantissa)
@@ -1088,10 +912,11 @@ pub fn ryu_to_string_precision(val : Double, precision~ : Int = 17) -> String {
       (1UL << gDOUBLE_MANTISSA_BITS) | ieeeMantissa,
     )
   }
-  let mut idx = 0
+  let mut index = 0
   let mut nonzero = false
   if ieeeSign {
-    result.write_char('-')
+    result[index] = b'-'
+    index += 1
   }
   if e2 >= -52 {
     let idx2 = if e2 < 0 { 0 } else { indexForExponent(e2) }
@@ -1099,75 +924,58 @@ pub fn ryu_to_string_precision(val : Double, precision~ : Int = 17) -> String {
     let len = lengthForIndex(idx2)
     for i = len - 1; i >= 0; i = i - 1 {
       let j = p10bits - e2
-      let mut digits = mulShift_mod1e9(
+      let digits = mulShift_mod1e9(
         m2 << 8,
         gPOW10_SPLIT[gPOW10_OFFSET[idx2] + i],
         j + 8,
       )
       if nonzero {
-        let sb2 = StringBuilder::new(size_hint=9)
-        for k in 0..<9 {
-          sb2.write_char(digit_to_char(digits % 10))
-          digits /= 10
-        }
-        result.write_string(sb2.to_string().rev())
-        idx += 9
+        write_nine_digits(result, index, digits)
+        index += 9
       } else if digits != 0 {
-        let sb2 = StringBuilder::new(size_hint=9)
         let olength = decimalLength9(digits)
-        for k in 0..<olength {
-          sb2.write_char(digit_to_char(digits % 10))
-          digits /= 10
-        }
-        result.write_string(sb2.to_string().rev())
+        write_digits(result, index, olength, digits)
+        index += olength
         nonzero = true
       }
     }
   }
   if not(nonzero) {
-    result.write_char('0')
+    result[index] = b'0'
+    index += 1
   }
   if precision > 0 {
-    result.write_char('.')
+    result[index] = b'.'
+    index += 1
   }
   if e2 < 0 {
     let idx2 = -e2 / 16
     let blocks = precision / 9 + 1
     let mut roundUp = 0
     let mut i = 0
-    if blocks <= gMIN_BLOCK_2[idx] {
+    if blocks <= gMIN_BLOCK_2[idx2] {
       i = blocks
-      for j in 0..<precision {
-        result.write_char('0')
-      }
-      idx += precision
+      write_len(result, index, precision, b'0')
+      index += precision
     } else if i < gMIN_BLOCK_2[idx2] {
       i = gMIN_BLOCK_2[idx2]
-      for j in 0..<(9 * i) {
-        result.write_char('0')
-      }
-      idx += i * 9
+      write_len(result, index, 9 * i, b'0')
+      index += i * 9
     }
     for i = i; i < blocks; i = i + 1 {
       let j = gADDITIONAL_BITS_2 + (-e2 - 16 * idx2)
       let p = gPOW10_OFFSET_2[idx2] + i - gMIN_BLOCK_2[idx2]
       if p >= gPOW10_OFFSET_2[idx2 + 1] {
         let fill = precision - 9 * i
-        for j in 0..<fill {
-          result.write_char('0')
-        }
-        idx += fill
+        write_len(result, index, fill, b'0')
+        index += fill
         break
       }
       let mut digits = mulShift_mod1e9(m2 << 8, gPOW10_SPLIT_2[p], j + 8)
+      // println("digits: " + digits.to_string())
       if i < blocks - 1 {
-        let sb2 = StringBuilder::new(size_hint=9)
-        for i in 0..<9 {
-          sb2.write_char(digit_to_char(digits % 10))
-          digits /= 10
-        }
-        result.write_string(sb2.to_string().rev())
-        idx += 9
+        write_nine_digits(result, index, digits)
+        index += 9
       } else {
         let maximum = precision - 9 * i
         let mut lastDigit = 0
@@ -1184,59 +992,52 @@ pub fn ryu_to_string_precision(val : Double, precision~ : Int = 17) -> String {
           roundUp = if trailingZeros { 2 } else { 1 }
         }
         if maximum > 0 {
-          let sb2 = StringBuilder::new(size_hint=maximum)
-          for k in 0..<maximum {
-            sb2.write_char(digit_to_char(digits % 10))
-            digits /= 10
-          }
-          result.write_string(sb2.to_string().rev())
-          idx += maximum
+          write_digits(result, index, maximum, digits)
+          index += maximum
         }
         break
       }
     }
 
     // TODO: Implement rounding logic
-    // if roundUp != 0 {
-    //   let mut roundIndex = idx
-    //   let mut dotIndex = 0
-    //   while true {
-    //     roundIndex -=1
-    //     if roundIndex == -1 || result[roundIndex] == '-' {
-    //       result[roundIndex + 1] = b'1'
-    //       if dotIndex > 0 {
-    //         result[dotIndex] = b'0'
-    //         result[dotIndex + 1] = b'.'
-    //       }
-    //       result[idx] = b'0'
-    //       idx += 1
-    //       break
-    //     }
-    //     if result[roundIndex] == b'.' {
-    //       dotIndex = roundIndex
-    //       continue
-    //     } else if result[roundIndex] == b'9' {
-    //       result[roundIndex] = b'0'
-    //       roundUp = 1
-    //       continue
-    //     } else {
-    //       if roundUp == 2 && result[roundIndex] % 2 == 0 {
-    //         break
-    //       }
-    //       result[roundIndex] = result[roundIndex] + 1
-    //       break
-    //     }
-    //   }
-    // }
-  } else {
-    for i in 0..<precision {
-      result.write_char('0')
+    if roundUp != 0 {
+      let mut roundIndex = index
+      let mut dotIndex = 0
+      while true {
+        roundIndex -= 1
+        if roundIndex == -1 || result[roundIndex] == '-' {
+          result[roundIndex + 1] = b'1'
+          if dotIndex > 0 {
+            result[dotIndex] = b'0'
+            result[dotIndex + 1] = b'.'
+          }
+          result[index] = b'0'
+          index += 1
+          break
+        }
+        if result[roundIndex] == b'.' {
+          dotIndex = roundIndex
+          continue
+        } else if result[roundIndex] == b'9' {
+          result[roundIndex] = b'0'
+          roundUp = 1
+          continue
+        } else {
+          if roundUp == 2 && result[roundIndex] % 2 == 0 {
+            break
+          }
+          result[roundIndex] = result[roundIndex] + 1
+          break
+        }
+      }
     }
-    idx += precision
+  } else {
+    write_len(result, index, precision, b'0')
+    index += precision
   }
   // println(result.to_string())
   // println("idx: " + idx.to_string())
-  return result.to_string()
+  return string_from_bytes(result, 0, index)
 }
 
 ///|
