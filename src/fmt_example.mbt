@@ -71,3 +71,13 @@ test "example/8" {
   inspect(fstring("{:E}", [42.5]), content="4.25E+1")
   inspect(fstring("{:%}", [42.5]), content="4250.00%")
 }
+
+///|
+test "example/9" {
+  inspect(fstring("{:.5E}", [42.5]), content="4.25000E+01")
+  inspect(fstring("{:.10e}", [4464252.51334]), content="4.4642525133e+06")
+  inspect(
+    fstring("{:.17e}", [4464252.51334]),
+    content="4.46425251334000006e+06",
+  )
+}

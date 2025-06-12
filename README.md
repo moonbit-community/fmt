@@ -55,6 +55,16 @@ fstring("{:,d}", [4285565, 3])          // "428,556,5"
 fstring("{:#_b}", [4285565, 3])         // "0b1000_0010_1100_1000_1111_101"
 ```
 
+### Precision
+
+```moonbit
+fstring("{:.5E}", [42.5]) // 4.25000E+01
+fstring("{:.10e}", [4464252.51334]) // 4.4642525133e+06
+fstring("{:.17e}", [4464252.51334]) // 4.46425251334000006e+06
+
+```
+
+
 -   For decimal types, a separator is added every 3 digits; for other bases, every 4 digits. Comma (`,`) is only supported for decimal types.
 
 ## Formatting Syntax Reference
