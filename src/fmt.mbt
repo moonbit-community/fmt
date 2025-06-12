@@ -102,9 +102,9 @@ fn format_float(spec : FormatSpec, value : Json) -> String {
       @ryu.ryu_to_string_exp(value, precision=spec.precision.or(6), upper=true)
     Percent => {
       let percent_value = value * 100.0
-      trim_or_pad_decimal(
-        @ryu.ryu_to_string(percent_value, false),
-        spec.precision.or(2),
+      @ryu.ryu_to_string_precision(
+        percent_value,
+        precision=spec.precision.or(2),
       ) +
       "%"
     }

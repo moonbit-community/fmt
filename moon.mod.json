@@ -1,13 +1,13 @@
 {
   "name": "BigOrangeQWQ/fmt",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "readme": "README.md",
-  "repository": "https://github.com/BigOrangeQWQ/fmt",
+  "repository": "https://github.com/moonbit-community/fmt",
   "license": "Apache-2.0",
   "keywords": ["fmt", "formatting", "string"],
   "description": "A simple and efficient string formatting library for MoonBit.",
   "source": "src",
-  "exclude": [
-    "src/fmt_combinator.mbt"
-  ]
+  "deps": {
+    "BigOrangeQWQ/ryu": "0.1.1"
+  }
 }
