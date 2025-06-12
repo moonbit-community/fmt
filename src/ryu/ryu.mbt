@@ -15,7 +15,7 @@
 // MoonBit implementation of Ryu, https://github.com/ulfjack/ryu
 // This is a fork of the ryu crate adjusted to comply to the ECMAScript number-to-string algorithm,
 
-// This File fork from https://github.com/moonbitlang/core/tree/main/double/internal/ryu
+// This File fork from https://github.com/oonbitlang/core/tree/main/double/internal/ryu
 ///|
 fn pow5bits(e : Int) -> Int {
   ((e * 1217359).reinterpret_as_uint() >> 19).reinterpret_as_int() + 1
@@ -647,7 +647,7 @@ fn d2d_small_int(
 
 ///|
 /// TODO: ryu_to_logger[T:Logger](Double/Float, T) -> Unit
-fn ryu_to_string(
+pub fn ryu_to_string(
   val : Double,
   scientificNotation : Bool,
   upper~ : Bool = false,
@@ -689,6 +689,554 @@ fn ryu_to_string(
     None => v = d2d(ieeeMantissa, ieeeExponent.reinterpret_as_uint())
   }
   to_chars(v, ieeeSign, scientificNotation, upper~, default~)
+}
+
+// Double to FixedString
+
+///|
+let gPOW10_ADDITIONAL_BITS = 120
+
+///|
+let gADDITIONAL_BITS_2 = 120
+
+///|
+fn pow10BitsForIndex(idx : Int) -> Int {
+  return 16 * idx + gPOW10_ADDITIONAL_BITS
+}
+
+///|
+fn indexForExponent(e : Int) -> Int {
+  return (e + 15) / 16
+}
+
+///|
+fn lengthForIndex(idx : Int) -> Int {
+  // +1 for ceil, +16 for mantissa, +8 to round up when dividing by 9
+  return (log10Pow2(16 * idx) + 1 + 16 + 8) / 9
+}
+
+///|
+fn umlh(a : UInt64, b : UInt64) -> UInt64 {
+  // Returns the low and high parts of the 128-bit product.
+  // The low part is lo, and the high part is hi.
+
+  let (_, hi) = umul128(a, b)
+  hi
+}
+
+///|
+fn div1e9(x : UInt64) -> UInt64 {
+  umlh(x >> 9, 0x44B82FA09B5A53UL) >> 11
+}
+
+///|
+fn mod1e9(x : UInt64) -> Int {
+  (x - 1000000000 * div1e9(x)).to_int()
+}
+
+///|
+fn mulShift_mod1e9(m : UInt64, mul : Array[UInt64], j : Int) -> Int {
+  let (_, high0) = umul128(m, mul[0])
+  let (low1, high1) = umul128(m, mul[1])
+  let (low2, high2) = umul128(m, mul[2])
+  let s0high = low1 + high0
+  let c1 = s0high < low1
+  let s1low = low2 + high1 + c1.to_uint64()
+  let c2 = s1low < low2
+  let s1high = high2 + c2.to_uint64()
+  if j < 160 {
+    let r0 = mod1e9(s1high).to_uint64()
+    let r1 = mod1e9((r0 << 32) | (s1low >> 32)).to_uint64()
+    let r2 = (r1 << 32) | (s1low & 0xFFFFFFFFUL)
+    return mod1e9(r2 >> (j - 128))
+  } else {
+    let r0 = mod1e9(s1high).to_uint64()
+    let r1 = mod1e9((r0 << 32) | (s1low >> 32)).to_uint64()
+    return mod1e9(r1 >> (j - 160))
+  }
+}
+
+// Returns the number of decimal digits in v, which must not contain more than 9 digits.
+///|
+fn decimalLength9(v : Int) -> Int {
+  // Function precondition: v is not a 10-digit number.
+  // (f2s: 9 digits are sufficient for round-tripping.)
+  // (d2fixed: We print 9-digit blocks.)
+  if v >= 100000000 {
+    return 9
+  }
+  if v >= 10000000 {
+    return 8
+  }
+  if v >= 1000000 {
+    return 7
+  }
+  if v >= 100000 {
+    return 6
+  }
+  if v >= 10000 {
+    return 5
+  }
+  if v >= 1000 {
+    return 4
+  }
+  if v >= 100 {
+    return 3
+  }
+  if v >= 10 {
+    return 2
+  }
+  return 1
+}
+
+// fn double_ryu_to_string(
+//   val : Double,
+//   precision~: Int = 17
+// ) -> String {
+//   if val == 0.0 {
+//     return "0"
+//   }
+//   let result = FixedArray::make(25, Byte::default())
+//   // Step 1: Decode the floating-point number, and unify normalized and subnormal cases.
+//   let bits : UInt64 = val.reinterpret_as_uint64()
+
+//   // Decode bits into sign, mantissa, and exponent.
+//   let ieeeSign = (
+//       (bits >> (gDOUBLE_MANTISSA_BITS + gDOUBLE_EXPONENT_BITS)) & 1UL
+//     ) !=
+//     0UL
+//   let ieeeMantissa : UInt64 = bits & ((1UL << gDOUBLE_MANTISSA_BITS) - 1UL)
+//   let ieeeExponent : Int = ((bits >> gDOUBLE_MANTISSA_BITS) &
+//   ((1UL << gDOUBLE_EXPONENT_BITS) - 1UL)).to_int()
+//   if ieeeExponent == (1 << gDOUBLE_EXPONENT_BITS) - 1 ||
+//     (ieeeExponent == 0 && ieeeMantissa == 0UL) {
+//     return copy_special_str(ieeeSign, ieeeExponent != 0, ieeeMantissa != 0UL)
+//   }
+//   println("ieeeExponent: "+ ieeeExponent.to_string() + " ieeeMantissa: " + ieeeMantissa.to_string())
+//   if ieeeExponent == 0 && ieeeMantissa == 0 {
+//     let mut index = 0;
+//     if(ieeeSign) {
+//       result[index] = b'-';
+//       index += 1;
+//     }
+//     result[index] = b'0';
+//     index += 1;
+//     if precision > 0 {
+//       result[index] = b'.';
+//       index += 1;
+//       for _ in 0..<precision {
+//         result[index] = b'0';
+//         index += 1;
+//       }
+//     }
+//     return string_from_bytes(result, 0, index)
+//   }
+
+//   let (e2, m2) = if ieeeExponent == 0 {
+//     (1 - gDOUBLE_BIAS - gDOUBLE_MANTISSA_BITS, ieeeMantissa)
+//   } else {
+//     (ieeeExponent - gDOUBLE_BIAS - gDOUBLE_MANTISSA_BITS, (1UL << gDOUBLE_MANTISSA_BITS) | ieeeMantissa)
+//   }
+//   let mut idx = 0
+//   let mut nonzero = false
+//   if (ieeeSign) {
+//     result[idx] = b'-'
+//     idx += 1
+//   }
+//   if (e2 >= -52) {
+//     let idx2 = if e2 < 0 {
+//       0
+//     } else {
+//       indexForExponent(e2)
+//     }
+//     let p10bits = pow10BitsForIndex(idx2)
+//     let len = lengthForIndex(idx2)
+
+//     for i = len - 1;i >= 0; i = i - 1 {
+//       let j = p10bits - e2
+//       let mut digits = mulShift_mod1e9(m2 << 8, gPOW10_SPLIT[gPOW10_OFFSET[idx2 + i]], j + 8 )
+//       if (nonzero) {
+//         for k in 0..<9 {
+//           result[idx + 8 - k] = (48 + digits % 10).to_byte()
+//           digits /= 10
+//         }
+//         result[0] = b'0'
+//         idx += 9
+//       } else if digits != 0 {
+//         let olength = decimalLength9(digits)
+//         for k in 0..<olength {
+//           result[idx + olength - k - 1] = (48 + digits % 10).to_byte()
+//           digits /= 10
+//         }
+//         idx += olength
+//         nonzero = true
+//       }
+//     } 
+
+//   }
+
+//   if not(nonzero) {
+//     result[idx] = b'0'
+//     idx += 1
+//   }
+//   if precision > 0 {
+//     result[idx] = b'.'
+//     idx += 1
+//   }
+
+//   if e2 < 0 {
+//     let idx2 = -e2 / 16
+//     let blocks = precision / 9 + 1
+//     let mut roundUp = 0
+//     let mut i = 0 
+//     if blocks <= gMIN_BLOCK_2[idx] {
+//       i = blocks
+//       for j in 0..<precision {
+//         result[idx + j] = b'0'
+//       }
+//       idx += precision
+//     } else if i < gMIN_BLOCK_2[idx2] {
+//       i = gMIN_BLOCK_2[idx2]
+//       for j in 0..<(9 * i) {
+//         result[idx + j] = b'0'
+//       }
+//       idx += i * 9
+//     } 
+
+//     for i = i; i < blocks; i = i + 1 {
+//       let j = gADDITIONAL_BITS_2 + (-e2 - 16 * idx2)
+//       let p = gPOW10_OFFSET_2[idx2] + i - gMIN_BLOCK_2[idx2]
+//       if p >= gPOW10_OFFSET_2[idx2 + 1] {
+//         let fill = precision- 9 * i
+//         for j in 0..<fill {
+//           result[idx + j] = b'0'
+//         }
+//         idx += fill
+//         break
+//       }
+//       let mut digits = mulShift_mod1e9(m2 << 8, gPOW10_SPLIT_2[p], j + 8)
+//       if i < blocks - 1 {
+//         for i in 0..<9 {
+//           result[idx + 9 - i - 1] = (48 + digits % 10).to_byte()
+//           digits /= 10
+//         }
+//         idx += 9
+//       } else {
+//         let maximum = precision - 9 * i
+//         let mut lastDigit = 0
+//         for k in 0..<(9 - maximum) {
+//           lastDigit = digits % 10
+//           digits /= 10
+//         }
+//         if lastDigit != 5 {
+//           roundUp = (lastDigit > 5).to_int()
+//         } else {
+//           let requiredTwos = -e2 - precision - 1
+//           let trailingZeros = requiredTwos <= 0 || (requiredTwos < 60 && multipleOfPowerOf2(m2, requiredTwos))
+//           roundUp = if trailingZeros {2} else { 1}
+//         }
+//         if maximum > 0 {
+//           for k in 0..<maximum {
+//             result[idx + maximum - k - 1] = (48 + digits % 10).to_byte()
+//             digits /= 10
+//           }
+//           idx += maximum
+//         }
+//         break
+//       }
+//     }
+
+//     if roundUp != 0 {
+//       let mut roundIndex = idx
+//       let mut dotIndex = 0
+//       while true {
+//         roundIndex -=1
+//         if roundIndex == -1 || result[roundIndex] == '-' {
+//           result[roundIndex + 1] = b'1'
+//           if dotIndex > 0 {
+//             result[dotIndex] = b'0'
+//             result[dotIndex + 1] = b'.'
+//           }
+//           result[idx] = b'0'
+//           idx += 1
+//           break
+//         }
+//         if result[roundIndex] == b'.' {
+//           dotIndex = roundIndex
+//           continue
+//         } else if result[roundIndex] == b'9' {
+//           result[roundIndex] = b'0'
+//           roundUp = 1
+//           continue
+//         } else {
+//           if roundUp == 2 && result[roundIndex] % 2 == 0 {
+//             break
+//           }
+//           result[roundIndex] = result[roundIndex] + 1
+//           break
+//         }
+//       }
+//     }
+//   } else {
+//     for i in 0..<precision {
+//       result[idx + i] = b'0'
+//     }
+//     idx += precision
+//   }
+//   println(result.to_string())
+//   println("idx: " + idx.to_string())
+//   return string_from_bytes(result, 0, idx)
+// }
+
+///|
+fn digit_to_char(digit : Int) -> Char {
+  match digit {
+    0 => '0'
+    1 => '1'
+    2 => '2'
+    3 => '3'
+    4 => '4'
+    5 => '5'
+    6 => '6'
+    7 => '7'
+    8 => '8'
+    9 => '9'
+    _ => panic()
+  }
+}
+
+///|
+test "db2string" {
+  inspect(
+    ryu_to_string_precision(12345.123456, precision=3),
+    content="12345.123",
+  )
+}
+
+///|
+test "db2string2" {
+  inspect(ryu_to_string_precision(12345.123456, precision=0), content="12345")
+}
+
+///|
+test "db2string3" {
+  inspect(
+    ryu_to_string_precision(12345.123456, precision=10),
+    content="12345.1234559999",
+  )
+}
+
+///|
+test "db2string4" {
+  inspect(
+    ryu_to_string_precision(12345.123456, precision=17),
+    content="12345.123455999999989",
+  )
+}
+
+// TODO: roundUp 
+///|
+test "db2string5" {
+  inspect(
+    ryu_to_string_precision(-8888888.1, precision=2),
+    content="-8888888.09",
+  )
+}
+
+///|
+pub fn ryu_to_string_precision(val : Double, precision~ : Int = 17) -> String {
+  if val == 0.0 {
+    return "0"
+  }
+  let result = StringBuilder::new(size_hint=25)
+  let bits : UInt64 = val.reinterpret_as_uint64()
+  let ieeeSign = (
+      (bits >> (gDOUBLE_MANTISSA_BITS + gDOUBLE_EXPONENT_BITS)) & 1UL
+    ) !=
+    0UL
+  let ieeeMantissa : UInt64 = bits & ((1UL << gDOUBLE_MANTISSA_BITS) - 1UL)
+  let ieeeExponent : Int = ((bits >> gDOUBLE_MANTISSA_BITS) &
+  ((1UL << gDOUBLE_EXPONENT_BITS) - 1UL)).to_int()
+  if ieeeExponent == (1 << gDOUBLE_EXPONENT_BITS) - 1 ||
+    (ieeeExponent == 0 && ieeeMantissa == 0UL) {
+    return copy_special_str(ieeeSign, ieeeExponent != 0, ieeeMantissa != 0UL)
+  }
+  // println(
+  //   "ieeeExponent: " +
+  //   ieeeExponent.to_string() +
+  //   " ieeeMantissa: " +
+  //   ieeeMantissa.to_string(),
+  // )
+  if ieeeExponent == 0 && ieeeMantissa == 0 {
+    if ieeeSign {
+      result.write_char('-')
+    }
+    result.write_char('0')
+    if precision > 0 {
+      result.write_char('.')
+      for _ in 0..<precision {
+        result.write_char('0')
+      }
+    }
+    return result.to_string()
+  }
+  let (e2, m2) = if ieeeExponent == 0 {
+    (1 - gDOUBLE_BIAS - gDOUBLE_MANTISSA_BITS, ieeeMantissa)
+  } else {
+    (
+      ieeeExponent - gDOUBLE_BIAS - gDOUBLE_MANTISSA_BITS,
+      (1UL << gDOUBLE_MANTISSA_BITS) | ieeeMantissa,
+    )
+  }
+  let mut idx = 0
+  let mut nonzero = false
+  if ieeeSign {
+    result.write_char('-')
+  }
+  if e2 >= -52 {
+    let idx2 = if e2 < 0 { 0 } else { indexForExponent(e2) }
+    let p10bits = pow10BitsForIndex(idx2)
+    let len = lengthForIndex(idx2)
+    for i = len - 1; i >= 0; i = i - 1 {
+      let j = p10bits - e2
+      let mut digits = mulShift_mod1e9(
+        m2 << 8,
+        gPOW10_SPLIT[gPOW10_OFFSET[idx2] + i],
+        j + 8,
+      )
+      if nonzero {
+        let sb2 = StringBuilder::new(size_hint=9)
+        for k in 0..<9 {
+          sb2.write_char(digit_to_char(digits % 10))
+          digits /= 10
+        }
+        result.write_string(sb2.to_string().rev())
+        idx += 9
+      } else if digits != 0 {
+        let sb2 = StringBuilder::new(size_hint=9)
+        let olength = decimalLength9(digits)
+        for k in 0..<olength {
+          sb2.write_char(digit_to_char(digits % 10))
+          digits /= 10
+        }
+        result.write_string(sb2.to_string().rev())
+        nonzero = true
+      }
+    }
+  }
+  if not(nonzero) {
+    result.write_char('0')
+  }
+  if precision > 0 {
+    result.write_char('.')
+  }
+  if e2 < 0 {
+    let idx2 = -e2 / 16
+    let blocks = precision / 9 + 1
+    let mut roundUp = 0
+    let mut i = 0
+    if blocks <= gMIN_BLOCK_2[idx] {
+      i = blocks
+      for j in 0..<precision {
+        result.write_char('0')
+      }
+      idx += precision
+    } else if i < gMIN_BLOCK_2[idx2] {
+      i = gMIN_BLOCK_2[idx2]
+      for j in 0..<(9 * i) {
+        result.write_char('0')
+      }
+      idx += i * 9
+    }
+    for i = i; i < blocks; i = i + 1 {
+      let j = gADDITIONAL_BITS_2 + (-e2 - 16 * idx2)
+      let p = gPOW10_OFFSET_2[idx2] + i - gMIN_BLOCK_2[idx2]
+      if p >= gPOW10_OFFSET_2[idx2 + 1] {
+        let fill = precision - 9 * i
+        for j in 0..<fill {
+          result.write_char('0')
+        }
+        idx += fill
+        break
+      }
+      let mut digits = mulShift_mod1e9(m2 << 8, gPOW10_SPLIT_2[p], j + 8)
+      if i < blocks - 1 {
+        let sb2 = StringBuilder::new(size_hint=9)
+        for i in 0..<9 {
+          sb2.write_char(digit_to_char(digits % 10))
+          digits /= 10
+        }
+        result.write_string(sb2.to_string().rev())
+        idx += 9
+      } else {
+        let maximum = precision - 9 * i
+        let mut lastDigit = 0
+        for k in 0..<(9 - maximum) {
+          lastDigit = digits % 10
+          digits /= 10
+        }
+        if lastDigit != 5 {
+          roundUp = (lastDigit > 5).to_int()
+        } else {
+          let requiredTwos = -e2 - precision - 1
+          let trailingZeros = requiredTwos <= 0 ||
+            (requiredTwos < 60 && multipleOfPowerOf2(m2, requiredTwos))
+          roundUp = if trailingZeros { 2 } else { 1 }
+        }
+        if maximum > 0 {
+          let sb2 = StringBuilder::new(size_hint=maximum)
+          for k in 0..<maximum {
+            sb2.write_char(digit_to_char(digits % 10))
+            digits /= 10
+          }
+          result.write_string(sb2.to_string().rev())
+          idx += maximum
+        }
+        break
+      }
+    }
+
+    // TODO: Implement rounding logic
+    // if roundUp != 0 {
+    //   let mut roundIndex = idx
+    //   let mut dotIndex = 0
+    //   while true {
+    //     roundIndex -=1
+    //     if roundIndex == -1 || result[roundIndex] == '-' {
+    //       result[roundIndex + 1] = b'1'
+    //       if dotIndex > 0 {
+    //         result[dotIndex] = b'0'
+    //         result[dotIndex + 1] = b'.'
+    //       }
+    //       result[idx] = b'0'
+    //       idx += 1
+    //       break
+    //     }
+    //     if result[roundIndex] == b'.' {
+    //       dotIndex = roundIndex
+    //       continue
+    //     } else if result[roundIndex] == b'9' {
+    //       result[roundIndex] = b'0'
+    //       roundUp = 1
+    //       continue
+    //     } else {
+    //       if roundUp == 2 && result[roundIndex] % 2 == 0 {
+    //         break
+    //       }
+    //       result[roundIndex] = result[roundIndex] + 1
+    //       break
+    //     }
+    //   }
+    // }
+  } else {
+    for i in 0..<precision {
+      result.write_char('0')
+    }
+    idx += precision
+  }
+  // println(result.to_string())
+  // println("idx: " + idx.to_string())
+  return result.to_string()
 }
 
 ///|

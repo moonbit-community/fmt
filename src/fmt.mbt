@@ -93,13 +93,17 @@ fn format_float(spec : FormatSpec, value : Json, sb : StringBuilder) -> Unit {
   let value = value.as_number().unwrap()
   let num_string = match spec.typ {
     Float =>
-      trim_or_pad_decimal(ryu_to_string(value, false), spec.precision.or(6))
-    ExponentLower => ryu_to_string(value, true)
-    ExponentUpper => ryu_to_string(value, true, upper=true)
+      if spec.precision.is_empty() {
+        @ryu.ryu_to_string(value, false, default=true)
+      } else {
+        @ryu.ryu_to_string_precision(value, precision=spec.precision.or(6))
+      }
+    ExponentLower => @ryu.ryu_to_string(value, true)
+    ExponentUpper => @ryu.ryu_to_string(value, true, upper=true)
     Percent => {
       let percent_value = value * 100.0
       trim_or_pad_decimal(
-        ryu_to_string(percent_value, false),
+        @ryu.ryu_to_string(percent_value, false),
         spec.precision.or(2),
       ) +
       "%"
