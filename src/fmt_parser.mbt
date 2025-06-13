@@ -1,7 +1,4 @@
 ///|
-pub suberror ParseError String derive(Eq, Show)
-
-///|
 typealias @string.View as str
 
 ///|
@@ -49,14 +46,6 @@ priv struct Options {
   sharp : Bool
   zero : Bool
 } derive(Show)
-
-///|
-fn Options::is_empty(self : Options) -> Bool {
-  return self.fill.is_empty() &&
-    self.align == Align::Left &&
-    not(self.sharp) &&
-    not(self.zero)
-}
 
 ///|
 impl Default for Options with default() {
@@ -209,60 +198,58 @@ fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str) {
   }
 }
 
-//TODO : refactor this to use combinators
 ///|
-fn parse_format_string(input : String) -> Array[FormatPart] raise ParseError {
-  let parts = Array::new()
+fn parse_text(input : str) -> (String, str) {
   let mut idx = 0
-  let mut last = 0
-  let chars = input[:]
   let buf = StringBuilder::new()
-  while idx < chars.length() {
-    let c = chars.char_at(idx)
-    if c == '{' {
-      if idx + 1 < chars.length() && chars.char_at(idx + 1) == '{' {
-        buf.write_char('{')
-        idx += 2
-      } else {
-        if not(buf.is_empty()) {
-          parts.push(Text(text=buf.to_string()))
-          buf.reset()
-        }
-        let mut end = idx + 1
-        let mut found = false
-        while end < chars.length() {
-          if chars.char_at(end) == '}' {
-            found = true
-            break
-          }
-          end += 1
-        }
-        if not(found) {
-          raise ParseError("Unmatched '{' in format string")
-        }
-        let part_input = chars.charcodes(start=idx + 1, end~)
-        match parse_format_part(part_input, last~) {
-          (part, _) => {
-            parts.push(part)
-            idx = end + 1
-            last += 1
-          }
-        }
-      }
-    } else if c == '}' {
-      if idx + 1 < chars.length() && chars.char_at(idx + 1) == '}' {
-        buf.write_char('}')
-        idx += 2
-      } else {
-        raise ParseError("Unmatched '}' in format string")
-      }
-    } else {
-      buf.write_char(c)
-      idx += 1
+  for char in input {
+    if char == '{' || char == '}' {
+      break
     }
+    buf.write_char(char)
+    idx += 1
   }
-  if not(buf.is_empty()) {
-    parts.push(Text(text=buf.to_string()))
+  (buf.to_string(), input.charcodes(start=idx))
+}
+
+///|
+fn parse_braces(input : str) -> (Char?, str) {
+  if input.has_prefix("{{") {
+    (Some('{'), input.charcodes(start=2))
+  } else if input.has_prefix("}}") {
+    (Some('}'), input.charcodes(start=2))
+  } else {
+    (None, input)
+  }
+}
+
+///|
+fn parse_format_string(input : String) -> Array[FormatPart] {
+  let parts = Array::new()
+  let mut last = 0
+  let mut chars = input[:]
+  let buf = StringBuilder::new()
+  while not(chars.is_empty()) {
+    let (text, new_chars) = parse_text(chars)
+    buf.write_string(text)
+    let (c, new_chars) = parse_braces(new_chars)
+    if c is Some(v) {
+      buf.write_char(v)
+    }
+    if not(buf.is_empty()) {
+      parts.push(Text(text=buf.to_string()))
+      buf.reset()
+    }
+    chars = new_chars
+    match chars {
+      ['{', .. new_chars] => {
+        let (spec, new_chars) = parse_format_part(new_chars, last~)
+        chars = new_chars.charcodes(start=1) // Skip the '}'
+        last += 1
+        parts.push(spec)
+      }
+      [..] => continue
+    }
   }
   parts
 }
@@ -313,7 +300,7 @@ test "parse_fmt_string" {
   inspect(
     result,
     content=
-      #|[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" {}")]
+      #|[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" {"), Text(text="}")]
     ,
   )
 }

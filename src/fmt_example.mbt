@@ -67,8 +67,8 @@ test "example/7" {
 
 ///|
 test "example/8" {
-  inspect(fstring("{:e}", [42.5]), content="4.25e+1")
-  inspect(fstring("{:E}", [42.5]), content="4.25E+1")
+  inspect(fstring("{:e}", [42.5]), content="4.250000e+01")
+  inspect(fstring("{:E}", [42.5]), content="4.250000E+01")
   inspect(fstring("{:%}", [42.5]), content="4250.00%")
 }
 

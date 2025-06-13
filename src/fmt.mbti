@@ -6,9 +6,6 @@ fn fprintln(String, Json) -> Unit
 fn fstring(String, Json) -> String
 
 // Types and methods
-pub suberror ParseError String
-impl Eq for ParseError
-impl Show for ParseError
 
 // Type aliases
 
