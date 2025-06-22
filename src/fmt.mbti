@@ -1,13 +1,82 @@
 package "BigOrangeQWQ/fmt"
 
-// Values
-fn fprintln(String, Json) -> Unit
+import(
+  "moonbitlang/core/bigint"
+)
 
-fn fstring(String, Json) -> String
+// Values
+fn fprintln(String, Array[&Formatter]) -> Unit
+
+fn fstring(String, Array[&Formatter]) -> String
+
+fn jprintln(String, Json) -> Unit
+
+fn jstring(String, Json) -> String
 
 // Types and methods
+pub enum Align {
+  Left
+  Right
+  Center
+}
+impl Eq for Align
+impl Show for Align
+
+pub struct FormatSpec {
+  options : Options
+  width : Int?
+  grouping : Grouping
+  precision : Int?
+  typ : SpecType
+}
+impl Show for FormatSpec
+
+pub enum Grouping {
+  Comma
+  Underscore
+  Default
+}
+impl Show for Grouping
+
+pub struct Options {
+  fill : Char?
+  align : Align
+  sharp : Bool
+  zero : Bool
+}
+impl Show for Options
+
+pub enum SpecType {
+  Binary
+  Digit
+  ExponentLower
+  ExponentUpper
+  Float
+  Octal
+  HexLower
+  HexUpper
+  Percent
+  Default
+}
+impl Show for SpecType
 
 // Type aliases
 
 // Traits
+pub(open) trait Formatter : Show {
+  display(Self, FormatSpec, StringBuilder) -> Unit = _
+}
+impl Formatter for Bool
+impl Formatter for Char
+impl Formatter for Int
+impl Formatter for Int16
+impl Formatter for Int64
+impl Formatter for UInt
+impl Formatter for UInt16
+impl Formatter for UInt64
+impl Formatter for Float
+impl Formatter for Double
+impl Formatter for String
+impl Formatter for @bigint.BigInt
+impl Formatter for Json
 

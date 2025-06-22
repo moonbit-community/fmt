@@ -10,7 +10,7 @@ struct TestObj {
   age : Int
 } derive(ToJson)
 
-fprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
+jprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
 // 输出: Hello 00001 {"name": String("Alice"), "age": Number(30)}
 ```
 

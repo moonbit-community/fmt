@@ -2,14 +2,14 @@
 typealias @string.View as str
 
 ///|
-priv enum Align {
+pub enum Align {
   Left
   Right
   Center
 } derive(Show, Eq)
 
 ///|
-priv enum Grouping {
+pub enum Grouping {
   Comma
   Underscore
   Default
@@ -21,7 +21,7 @@ impl Default for Grouping with default() {
 }
 
 ///|
-priv enum SpecType {
+pub enum SpecType {
   Binary
   Digit
   ExponentLower
@@ -40,7 +40,7 @@ impl Default for SpecType with default() {
 }
 
 ///|
-priv struct Options {
+pub struct Options {
   fill : Char?
   align : Align
   sharp : Bool
@@ -53,7 +53,7 @@ impl Default for Options with default() {
 }
 
 ///|
-priv struct FormatSpec {
+pub struct FormatSpec {
   options : Options
   width : Int?
   grouping : Grouping
@@ -240,8 +240,7 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
       parts.push(Text(text=buf.to_string()))
       buf.reset()
     }
-    chars = new_chars
-    match chars {
+    match new_chars {
       ['{', .. new_chars] => {
         let (spec, new_chars) = parse_format_part(new_chars, last~)
         chars = new_chars.charcodes(start=1) // Skip the '}'

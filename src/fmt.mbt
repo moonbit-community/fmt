@@ -30,15 +30,16 @@ fn format_part(part : FormatPart, values : Array[Json]) -> String {
 ///|
 fn align_string(spec : FormatSpec, value : String, sb : StringBuilder) -> Unit {
   let width = spec.width.or(0)
+  let mut value = value
   let padding = width - value.length()
   let fill = spec.options.fill.or(' ')
   if spec.options.sharp {
-    match spec.typ {
-      SpecType::Binary => sb.write_string("0b")
-      SpecType::Octal => sb.write_string("0o")
-      SpecType::HexLower => sb.write_string("0x")
-      SpecType::HexUpper => sb.write_string("0X")
-      _ => ()
+    value = match spec.typ {
+      SpecType::Binary => "0b" + value
+      SpecType::Octal => "0o" + value
+      SpecType::HexLower => "0x" + value
+      SpecType::HexUpper => "0X" + value
+      _ => value
     }
   }
   if spec.options.zero {
@@ -130,7 +131,38 @@ fn format_digit(spec : FormatSpec, value : Json) -> String {
 }
 
 ///|
-fn format(parts : Array[FormatPart], values : Array[Json]) -> String {
+pub fn fstring(parts : String, values : Array[&Formatter]) -> String {
+  let parts = parse_format_string(parts)
+  format(parts, values)
+}
+
+///|
+fn format(parts : Array[FormatPart], values : Array[&Formatter]) -> String {
+  let result = StringBuilder::new()
+  for part in parts {
+    match part {
+      LocField(loc~, spec~) =>
+        if loc < values.length() {
+          let value = values[loc]
+          value.display(spec, result)
+        } else {
+          result.write_string("{{missing}}")
+        }
+      Text(text~) => result.write_string(text)
+    }
+  }
+  result.to_string()
+}
+
+// /|
+
+///|
+pub fn fprintln(parts : String, values : Array[&Formatter]) -> Unit {
+  fstring(parts, values) |> println
+}
+
+///|
+fn jformat(parts : Array[FormatPart], values : Array[Json]) -> String {
   let result = StringBuilder::new()
   for part in parts {
     let formatted_value = format_part(part, values)
@@ -140,16 +172,16 @@ fn format(parts : Array[FormatPart], values : Array[Json]) -> String {
 }
 
 ///|
-pub fn fprintln(parts : String, values : Json) -> Unit {
-  fstring(parts, values) |> println
-}
-
-///|
-pub fn fstring(parts : String, values : Json) -> String {
+pub fn jstring(parts : String, values : Json) -> String {
   let parts = parse_format_string(parts)
   match values {
     Json::Array(_) => ()
     _ => abort("fprintln expects an array of values")
   }
-  format(parts, values.as_array().unwrap())
+  jformat(parts, values.as_array().unwrap())
+}
+
+///|
+pub fn jprintln(parts : String, values : Json) -> Unit {
+  jstring(parts, values) |> println
 }

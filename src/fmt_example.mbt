@@ -6,9 +6,9 @@ priv struct TestObj {
 
 ///|qqc|
 test "example/1" {
-  fprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
+  jprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
   inspect(
-    fstring("Hello {:05} {}", [1, { name: "Alice", age: 30 }]),
+    jstring("Hello {:05} {}", [1, { name: "Alice", age: 30 }]),
     content=
       #|Hello 00001 {"name": String("Alice"), "age": Number(30)}
     ,
@@ -80,4 +80,9 @@ test "example/9" {
     fstring("{:.17e}", [4464252.51334]),
     content="4.46425251334000006e+06",
   )
+}
+
+///|
+test "example/10" {
+  inspect(fstring("{}", [-114514]), content="-114514")
 }
