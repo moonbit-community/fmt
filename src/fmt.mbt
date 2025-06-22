@@ -87,7 +87,7 @@ fn format_float(spec : FormatSpec, value : Json) -> String {
       ) +
       "%"
     }
-    _ => abort("Unsupported format type for float")
+    _ => value.to_string()
   }
   doble_string
 }
@@ -104,7 +104,7 @@ fn format_digit(spec : FormatSpec, value : Json) -> String {
     HexLower => value.to_string(radix=16)
     HexUpper => value.to_string(radix=16).to_upper()
     Digit => value.to_string()
-    _ => abort("Unsupported format type for digit")
+    _ => value.to_string()
   }
   let digit_group = fn(grouping : Char, num_string : String, cnt : Int) {
     let new_num_string = StringBuilder::new()
@@ -133,7 +133,6 @@ fn format_digit(spec : FormatSpec, value : Json) -> String {
 ///|
 pub fn fstring(parts : String, values : Array[&Formatter]) -> String {
   let parts = parse_format_string(parts)
-  println("1")
   format(parts, values)
 }
 
@@ -142,13 +141,10 @@ fn format(parts : Array[FormatPart], values : Array[&Formatter]) -> String {
   let result = StringBuilder::new()
   for part in parts {
     match part {
-      LocField(loc~, spec~) =>
-        if loc < values.length() {
-          let value = values[loc]
-          value.display(spec, result)
-        } else {
-          result.write_string("{{missing}}")
-        }
+      LocField(loc~, spec~) => {
+        let value = values[loc]
+        value.display(spec, result)
+      }
       Text(text~) => result.write_string(text)
     }
   }

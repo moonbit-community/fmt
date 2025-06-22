@@ -1,10 +1,29 @@
 ///|
+fn format_basic_type(
+  spec : FormatSpec,
+  value : Json,
+  sb : StringBuilder
+) -> Unit {
+  match spec.typ {
+    Float | ExponentLower | ExponentUpper | Percent =>
+      align_string(spec, format_float(spec, value), sb)
+    Digit | Binary | Octal | HexLower | HexUpper =>
+      align_string(spec, format_digit(spec, value), sb)
+    _ => abort("unexpected type in format_base_type: " + spec.typ.to_string())
+  }
+}
+
+///|
 pub impl Formatter for Int with display(
   self : Int,
   spec : FormatSpec,
   sb : StringBuilder
 ) -> Unit {
-  align_string(spec, format_digit(spec, self.to_json()), sb)
+  if spec.typ is Default {
+    align_string(spec, self.to_string(), sb)
+  } else {
+    format_basic_type(spec, self.to_json(), sb)
+  }
 }
 
 ///|
@@ -13,7 +32,11 @@ pub impl Formatter for Int64 with display(
   spec : FormatSpec,
   sb : StringBuilder
 ) -> Unit {
-  align_string(spec, format_digit(spec, self.to_json()), sb)
+  if spec.typ is Default {
+    align_string(spec, self.to_string(), sb)
+  } else {
+    format_basic_type(spec, self.to_json(), sb)
+  }
 }
 
 ///|
@@ -22,7 +45,11 @@ pub impl Formatter for Int16 with display(
   spec : FormatSpec,
   sb : StringBuilder
 ) -> Unit {
-  align_string(spec, format_digit(spec, self.to_json()), sb)
+  if spec.typ is Default {
+    align_string(spec, self.to_string(), sb)
+  } else {
+    format_basic_type(spec, self.to_json(), sb)
+  }
 }
 
 ///|
@@ -31,7 +58,11 @@ pub impl Formatter for UInt16 with display(
   spec : FormatSpec,
   sb : StringBuilder
 ) -> Unit {
-  align_string(spec, format_digit(spec, self.to_json()), sb)
+  if spec.typ is Default {
+    align_string(spec, self.to_string(), sb)
+  } else {
+    format_basic_type(spec, self.to_json(), sb)
+  }
 }
 
 ///|
@@ -40,7 +71,11 @@ pub impl Formatter for UInt with display(
   spec : FormatSpec,
   sb : StringBuilder
 ) -> Unit {
-  align_string(spec, format_digit(spec, self.to_json()), sb)
+  if spec.typ is Default {
+    align_string(spec, self.to_string(), sb)
+  } else {
+    format_basic_type(spec, self.to_json(), sb)
+  }
 }
 
 ///|
@@ -49,7 +84,11 @@ pub impl Formatter for UInt64 with display(
   spec : FormatSpec,
   sb : StringBuilder
 ) -> Unit {
-  align_string(spec, format_digit(spec, self.to_json()), sb)
+  if spec.typ is Default {
+    align_string(spec, self.to_string(), sb)
+  } else {
+    format_basic_type(spec, self.to_json(), sb)
+  }
 }
 
 ///|
@@ -58,7 +97,7 @@ pub impl Formatter for BigInt with display(
   spec : FormatSpec,
   sb : StringBuilder
 ) -> Unit {
-  align_string(spec, format_digit(spec, self.to_json()), sb)
+  align_string(spec, self.to_string(), sb)
 }
 
 ///|
@@ -67,7 +106,11 @@ pub impl Formatter for Float with display(
   spec : FormatSpec,
   sb : StringBuilder
 ) -> Unit {
-  align_string(spec, format_float(spec, self.to_json()), sb)
+  if spec.typ is Default {
+    align_string(spec, self.to_string(), sb)
+  } else {
+    format_basic_type(spec, self.to_json(), sb)
+  }
 }
 
 ///|
@@ -76,7 +119,11 @@ pub impl Formatter for Double with display(
   spec : FormatSpec,
   sb : StringBuilder
 ) -> Unit {
-  align_string(spec, format_float(spec, self.to_json()), sb)
+  if spec.typ is Default {
+    align_string(spec, self.to_string(), sb)
+  } else {
+    format_basic_type(spec, self.to_json(), sb)
+  }
 }
 
 ///|
@@ -85,7 +132,7 @@ pub impl Formatter for String with display(
   spec : FormatSpec,
   sb : StringBuilder
 ) -> Unit {
-  align_string(spec, self.to_string(), sb)
+  align_string(spec, self, sb)
 }
 
 ///|

@@ -11,3 +11,8 @@ repos:
         entry: moon info
         language: system
         pass_filenames: false
+      - id: moon-test
+        name: moon test
+        entry: moon test
+        language: system
+        pass_filenames: false
