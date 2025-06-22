@@ -64,7 +64,8 @@ impl Show for SpecType
 
 // Traits
 pub(open) trait Formatter : Show {
-  display(Self, FormatSpec, StringBuilder) -> Unit = _
+  format(Self, FormatSpec) -> String = _
+  display(Self, FormatSpec, &Logger) -> Unit = _
 }
 impl Formatter for Bool
 impl Formatter for Char
