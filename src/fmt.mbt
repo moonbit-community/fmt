@@ -131,12 +131,6 @@ fn format_digit(spec : FormatSpec, value : Json) -> String {
 }
 
 ///|
-pub fn fstring(parts : String, values : Array[&Formatter]) -> String {
-  let parts = parse_format_string(parts)
-  format(parts, values)
-}
-
-///|
 fn format(parts : Array[FormatPart], values : Array[&Formatter]) -> String {
   let result = StringBuilder::new()
   for part in parts {
@@ -151,9 +145,62 @@ fn format(parts : Array[FormatPart], values : Array[&Formatter]) -> String {
   result.to_string()
 }
 
-// /|
+///|
+/// Formats a string with placeholders using the provided formatter values.
+///
+/// Parses the format string to identify placeholders and literal text, then
+/// applies the formatter values to fill the placeholders according to their
+/// specifications. This function provides a flexible way to create formatted
+/// strings with type-safe value insertion.
+///
+/// Parameters:
+///
+/// * `parts` : The format string containing placeholders (e.g., `{0}`, `{1:x}`)
+/// and literal text to be formatted.
+/// * `values` : An array of formatter objects that implement the `Formatter`
+/// trait, used to fill the placeholders in the format string.
+///
+/// Returns the formatted string with all placeholders replaced by their
+/// corresponding formatted values.
+///
+/// Example:
+///
+/// ```moonbit
+/// let name = "Alice"
+/// let age = 30
+/// let formatted = @fmt.fstring("Hello, {0}! You are {1} years old.", [name, age])
+/// inspect(formatted, content="Hello, Alice! You are 30 years old.")
+/// ```
+///
+pub fn fstring(parts : String, values : Array[&Formatter]) -> String {
+  let parts = parse_format_string(parts)
+  format(parts, values)
+}
 
 ///|
+/// Formats a string with placeholders using the provided formatter values and
+/// prints it to standard output followed by a newline.
+///
+/// This function combines string formatting and output in a single operation. It
+/// parses the format string, applies the formatter values to fill placeholders,
+/// and outputs the result.
+///
+/// Parameters:
+///
+/// * `parts` : The format string containing placeholders and literal text to be
+/// formatted.
+/// * `values` : An array of formatter objects that implement the `Formatter`
+/// trait, used to fill the placeholders in the format string.
+///
+/// Example:
+///
+/// ```moonbit
+/// let name = "Alice"
+/// let age = 30
+/// @fmt.fprintln("Hello, {0}! You are {1} years old.", [name, age])
+/// // Outputs: Hello, Alice! You are 30 years old.
+/// ```
+///
 pub fn fprintln(parts : String, values : Array[&Formatter]) -> Unit {
   fstring(parts, values) |> println
 }
@@ -169,6 +216,33 @@ fn jformat(parts : Array[FormatPart], values : Array[Json]) -> String {
 }
 
 ///|
+/// Formats a string with placeholders using the provided JSON values.
+///
+/// Parses the format string to identify placeholders and literal text, then
+/// applies the JSON values to fill the placeholders according to their
+/// specifications. This function provides a flexible way to create formatted
+/// strings using JSON data as input.
+///
+/// Parameters:
+///
+/// * `parts` : The format string containing placeholders (e.g., `{0}`, `{1:x}`)
+///  and literal text to be formatted.
+/// * `values` : A JSON array containing the values used to fill the placeholders
+///  in the format string. Each element corresponds to a placeholder position.
+///
+/// Returns the formatted string with all placeholders replaced by their
+/// corresponding formatted values from the JSON array.
+///
+/// Panics if `values` is not a JSON array.
+///
+/// Example:
+///
+/// ```moonbit
+/// let data = @json.parse("[\"Alice\", 30]")
+/// let formatted = @fmt.jstring("Hello, {0}! You are {1} years old.", data)
+/// inspect(formatted, content="Hello, Alice! You are 30 years old.")
+/// ```
+///
 pub fn jstring(parts : String, values : Json) -> String {
   let parts = parse_format_string(parts)
   match values {
@@ -179,6 +253,30 @@ pub fn jstring(parts : String, values : Json) -> String {
 }
 
 ///|
+/// Formats a string with placeholders using the provided JSON values and prints
+/// it to standard output followed by a newline.
+///
+/// This function combines string formatting and output in a single operation. It
+/// parses the format string, applies the JSON values to fill placeholders
+/// according to their specifications, and outputs the result to the console.
+///
+/// Parameters:
+///
+/// * `parts` : The format string containing placeholders (e.g., `{0}`, `{1:x}`)
+/// and literal text to be formatted.
+/// * `values` : A JSON array containing the values used to fill the placeholders
+/// in the format string. Each element corresponds to a placeholder position.
+///
+/// Panics if `values` is not a JSON array.
+///
+/// Example:
+///
+/// ```moonbit
+/// let data = @json.parse("[\"Alice\", 30]")
+/// @fmt.jprintln("Hello, {0}! You are {1} years old.", data)
+/// // Outputs: Hello, Alice! You are 30 years old.
+/// ```
+///
 pub fn jprintln(parts : String, values : Json) -> Unit {
   jstring(parts, values) |> println
 }
