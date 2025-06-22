@@ -233,6 +233,7 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
     let (text, new_chars) = parse_text(chars)
     buf.write_string(text)
     let (c, new_chars) = parse_braces(new_chars)
+    chars = new_chars
     if c is Some(v) {
       buf.write_char(v)
     }
@@ -300,6 +301,20 @@ test "parse_fmt_string" {
     result,
     content=
       #|[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" {"), Text(text="}")]
+    ,
+  )
+}
+
+///|
+test "parse_pure_braces" {
+  let input = "{{}}"
+  let result = match parse_format_string(input) {
+    parts => parts
+  }
+  inspect(
+    result,
+    content=
+      #|[Text(text="{"), Text(text="}")]
     ,
   )
 }

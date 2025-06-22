@@ -133,6 +133,7 @@ fn format_digit(spec : FormatSpec, value : Json) -> String {
 ///|
 pub fn fstring(parts : String, values : Array[&Formatter]) -> String {
   let parts = parse_format_string(parts)
+  println("1")
   format(parts, values)
 }
 
