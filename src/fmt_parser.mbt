@@ -248,8 +248,16 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
         last += 1
         parts.push(spec)
       }
-      ['}', ..] => {
-        abort("Unmatched closing brace in format string")
+      ['}', ..new_chars] => {
+        if new_chars.has_prefix("}") {
+          // This is a literal '}' in the format string
+          buf.write_char('}')
+          parts.push(Text(text=buf.to_string()))
+          chars = new_chars.charcodes(start=1) // Skip the '}'
+        } else {
+          // If we reach here, it means we have an unmatched '}'
+          abort("Unmatched '}' in format string")
+        }
       }
       [..] => continue
     }
@@ -319,6 +327,8 @@ test "parse_pure_braces" {
     result,
     content=
       #|[Text(text="{"), Text(text="}")]
+
+
     ,
   )
 }

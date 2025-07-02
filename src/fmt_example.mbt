@@ -94,3 +94,8 @@ test "panic example/11" {
 test "example/12" {
   inspect(fstring("{:#08x}", [1]), content="0x000001")
 }
+
+
+test "example/12" {
+  inspect(fstring("{:#09x}", [15]), content="0x000000f")
+}
