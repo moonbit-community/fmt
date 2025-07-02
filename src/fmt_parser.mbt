@@ -268,6 +268,74 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
 }
 
 ///|
+test "parse_format_string" {
+  // Test simple format strings with placeholders
+  inspect(
+    parse_format_string("{}"),
+    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default})]",
+  )
+  inspect(
+    parse_format_string("{0}"),
+    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default})]",
+  )
+  inspect(
+    parse_format_string("{} {}"),
+    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=\" \"), LocField(loc=1, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default})]",
+  )
+
+  // Test format strings with text and placeholders
+  inspect(
+    parse_format_string("Hello {}, world!"),
+    content="[Text(text=\"Hello \"), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=\", world!\")]",
+  )
+
+  // Test format strings with specifications
+  inspect(
+    parse_format_string("{:d}"),
+    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Digit})]",
+  )
+  inspect(
+    parse_format_string("{0:10x}"),
+    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: HexLower})]",
+  )
+}
+
+///|
+test "parse_format_string/escaped_braces" {
+  // Test escaped braces
+  inspect(
+    parse_format_string("{{}}"),
+    content="[Text(text=\"{\"), Text(text=\"}\")]",
+  )
+  inspect(
+    parse_format_string("{{hello}}"),
+    content=(
+      #|[Text(text="{"), Text(text="hello}")]
+    ),
+  )
+  inspect(
+    parse_format_string("{{{0}}}"),
+    content="[Text(text=\"{\"), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=\"}\")]",
+  )
+
+  // Test mixed escaped and unescaped braces
+  inspect(
+    parse_format_string("{{ {} }}"),
+    content=(
+      #|[Text(text="{"), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=" }")]
+    ),
+  )
+}
+
+///|
+test "panic parse_format_string/unmatched_brace" {
+  // Test unmatched closing brace
+  ignore(parse_format_string("Hello }"))
+  ignore(parse_format_string("Hello } world"))
+  ignore(parse_format_string("{0} }"))
+}
+
+///|
 test "parse_spec_precision" {
   let input = ".2f"
   let (spec, _) = match parse_spec(input[:]) {
@@ -332,7 +400,7 @@ test "parse_pure_braces" {
   )
 }
 
-
+///|
 test "parse_example_13" {
   let input = "{:<#8x}"
   let result = match parse_format_string(input) {
@@ -340,8 +408,6 @@ test "parse_example_13" {
   }
   inspect(
     result,
-    content=(
-      "[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: true, zero: false}, width: Some(8), grouping: Default, precision: None, typ: HexLower})]"
-    ),
+    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: true, zero: false}, width: Some(8), grouping: Default, precision: None, typ: HexLower})]",
   )
 }
