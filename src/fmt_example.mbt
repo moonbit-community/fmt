@@ -101,3 +101,13 @@ test "example/12" {
 test "example/12" {
   inspect(fstring("{:#09x}", [15]), content="0x000000f")
 }
+
+///|
+test "example/13" {
+  inspect(fstring("{:<#8x}", [15]), content="0xf")
+}
+
+///|
+test "panic example/13" {
+  inspect(fstring("{:<8#x}", [15]), content="0x00000f")
+}

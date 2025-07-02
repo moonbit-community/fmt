@@ -35,16 +35,11 @@ pub enum SpecType {
 } derive(Show)
 
 ///|
-impl Default for SpecType with default() {
-  return SpecType::Default
-}
-
-///|
 pub struct Options {
   fill : Char?
   align : Align
-  sharp : Bool
-  zero : Bool
+  mut sharp : Bool
+  mut zero : Bool
 } derive(Show)
 
 ///|
@@ -107,11 +102,19 @@ fn parse_fill_align(input : str) -> (Char?, Align, str) {
 ///|
 fn parse_options(input : str) -> (Options, str) {
   let (fill, align, input) = parse_fill_align(input)
-  match input {
-    ['#', .. chars] => ({ fill, align, sharp: true, zero: true }, chars)
-    ['0', .. chars] => ({ fill, align, sharp: false, zero: true }, chars)
-    [..] => ({ fill, align, sharp: false, zero: false }, input)
+  let options = { fill, align, sharp: false, zero: false }
+  loop input {
+    ['#', .. input] => {
+      options.sharp = true
+      continue input
+    }
+    ['0', .. input] => {
+      options.zero = true
+      continue input
+    }
+    [..] as input => return (options, input)
   }
+  return (options, input)
 }
 
 ///|
@@ -325,6 +328,20 @@ test "parse_pure_braces" {
     result,
     content=(
       #|[Text(text="{"), Text(text="}")]
+    ),
+  )
+}
+
+
+test "parse_example_13" {
+  let input = "{:<#8x}"
+  let result = match parse_format_string(input) {
+    parts => parts
+  }
+  inspect(
+    result,
+    content=(
+      "[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: true, zero: false}, width: Some(8), grouping: Default, precision: None, typ: HexLower})]"
     ),
   )
 }
