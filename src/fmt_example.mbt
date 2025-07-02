@@ -86,3 +86,11 @@ test "example/9" {
 test "example/10" {
   inspect(fstring("{}", [-114514]), content="-114514")
 }
+
+test "panic example/11" {
+  inspect(fstring("{:#0x8}", [1]), content="0x000001")
+}
+
+test "example/12" {
+  inspect(fstring("{:#08x}", [1]), content="0x000001")
+}

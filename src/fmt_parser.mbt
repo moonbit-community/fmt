@@ -248,8 +248,12 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
         last += 1
         parts.push(spec)
       }
+      ['}', ..] => {
+        abort("Unmatched closing brace in format string")
+      }
       [..] => continue
     }
+
   }
   parts
 }
