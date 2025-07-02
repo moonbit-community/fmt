@@ -248,7 +248,7 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
         last += 1
         parts.push(spec)
       }
-      ['}', ..new_chars] => {
+      ['}', .. new_chars] =>
         if new_chars.has_prefix("}") {
           // This is a literal '}' in the format string
           buf.write_char('}')
@@ -258,10 +258,8 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
           // If we reach here, it means we have an unmatched '}'
           abort("Unmatched '}' in format string")
         }
-      }
       [..] => continue
     }
-
   }
   parts
 }
@@ -311,9 +309,9 @@ test "parse_fmt_string" {
   }
   inspect(
     result,
-    content=
+    content=(
       #|[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" {"), Text(text="}")]
-    ,
+    ),
   )
 }
 
@@ -325,10 +323,8 @@ test "parse_pure_braces" {
   }
   inspect(
     result,
-    content=
+    content=(
       #|[Text(text="{"), Text(text="}")]
-
-
-    ,
+    ),
   )
 }

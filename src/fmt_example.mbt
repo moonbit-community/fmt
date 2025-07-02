@@ -2,16 +2,16 @@
 priv struct TestObj {
   name : String
   age : Int
-} derive(ToJson, FromJson)
+} derive(ToJson)
 
 ///|qqc|
 test "example/1" {
   jprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
   inspect(
     jstring("Hello {:05} {}", [1, { name: "Alice", age: 30 }]),
-    content=
+    content=(
       #|Hello 00001 {"name": String("Alice"), "age": Number(30)}
-    ,
+    ),
   )
 }
 
@@ -87,15 +87,17 @@ test "example/10" {
   inspect(fstring("{}", [-114514]), content="-114514")
 }
 
+///|
 test "panic example/11" {
   inspect(fstring("{:#0x8}", [1]), content="0x000001")
 }
 
+///|
 test "example/12" {
   inspect(fstring("{:#08x}", [1]), content="0x000001")
 }
 
-
+///|
 test "example/12" {
   inspect(fstring("{:#09x}", [15]), content="0x000000f")
 }

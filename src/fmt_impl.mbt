@@ -5,15 +5,13 @@ fn _align_string(spec : FormatSpec, value : String) -> String {
   let mut value = value
   let padding = width - value.length()
   let fill = spec.options.fill.or(' ')
-
   if spec.options.zero {
     if spec.options.sharp {
       value = value.pad_start(width - 2, '0')
-    }else {
+    } else {
       value = value.pad_start(width, '0')
     }
   }
-
   if spec.options.sharp {
     value = match spec.typ {
       SpecType::Binary => "0b" + value
