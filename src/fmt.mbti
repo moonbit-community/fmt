@@ -41,8 +41,8 @@ impl Show for Grouping
 pub struct Options {
   fill : Char?
   align : Align
-  sharp : Bool
-  zero : Bool
+  mut sharp : Bool
+  mut zero : Bool
 }
 impl Show for Options
 
