@@ -81,3 +81,15 @@ impl Formatter for String
 impl Formatter for @bigint.BigInt
 impl Formatter for Json
 
+
+// Enhanced API with improved error handling
+fn fstring_safe(String, Array[&Formatter]) -> Result[String, String]
+
+fn fstring_v2(String, Array[&Formatter]) -> String
+
+fn jstring_safe(String, Json) -> Result[String, String]
+
+fn jstring_v2(String, Json) -> String
+
+// Analysis and debugging tools
+fn analyze_format_string(String) -> String

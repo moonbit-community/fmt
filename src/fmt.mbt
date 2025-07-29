@@ -12,7 +12,7 @@ fn format_part(part : FormatPart, values : Array[Json]) -> String {
         Default =>
           match value {
             Json::String(s) => s
-            Json::Number(n) => n.to_string()
+            Json::Number(n, ..) => n.to_string()
             Json::True => "true"
             Json::False => "false"
             Json::Null => "None"
@@ -29,10 +29,10 @@ fn format_part(part : FormatPart, values : Array[Json]) -> String {
 
 ///|
 fn align_string(spec : FormatSpec, value : String, sb : StringBuilder) -> Unit {
-  let width = spec.width.or(0)
+  let width = spec.width.unwrap_or(0)
   let mut value = value
   let padding = width - value.length()
-  let fill = spec.options.fill.or(' ')
+  let fill = spec.options.fill.unwrap_or(' ')
   if spec.options.sharp {
     value = match spec.typ {
       SpecType::Binary => "0b" + value
@@ -76,14 +76,14 @@ fn format_float(spec : FormatSpec, value : Json) -> String {
         value.to_string() // Default is JavaScript specific
       }
     ExponentLower =>
-      @ryu.ryu_to_string_exp(value, precision=spec.precision.or(6), upper=false)
+      @ryu.ryu_to_string_exp(value, precision=spec.precision.unwrap_or(6), upper=false)
     ExponentUpper =>
-      @ryu.ryu_to_string_exp(value, precision=spec.precision.or(6), upper=true)
+      @ryu.ryu_to_string_exp(value, precision=spec.precision.unwrap_or(6), upper=true)
     Percent => {
       let percent_value = value * 100.0
       @ryu.ryu_to_string_precision(
         percent_value,
-        precision=spec.precision.or(2),
+        precision=spec.precision.unwrap_or(2),
       ) +
       "%"
     }
