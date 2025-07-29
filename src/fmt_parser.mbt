@@ -1,5 +1,4 @@
-///|
-typealias @string.View as str
+
 
 ///|
 pub enum Align {
@@ -68,12 +67,34 @@ impl Default for FormatSpec with default() {
 }
 
 ///|
-priv enum FormatPart {
+pub enum FormatPart {
   LocField(loc~ : Int, spec~ : FormatSpec)
   Text(text~ : String)
 } derive(Show)
 
+
+
 ///|
+fn parse_digit(input : str) -> (Int?, str) {
+  let mut result = 0
+  let mut idx = 0
+  for c in input {
+    if not(c.is_digit(10)) {
+      break
+    }
+    result = result * 10 + (Char::to_int(c) - '0')
+    idx += 1
+  }
+  if idx == 0 {
+    (None, input)
+  } else {
+    (Some(result), input.to_string().substring(start=idx)[:])
+  }
+}
+
+
+
+///| 
 fn match_align_char(c : Char) -> Align {
   match c {
     '<' => Align::Left
@@ -103,36 +124,21 @@ fn parse_fill_align(input : str) -> (Char?, Align, str) {
 fn parse_options(input : str) -> (Options, str) {
   let (fill, align, input) = parse_fill_align(input)
   let options = { fill, align, sharp: false, zero: false }
-  loop input {
-    ['#', .. input] => {
-      options.sharp = true
-      continue input
+  let mut current = input
+  while true {
+    match current {
+      ['#', .. rest] => {
+        options.sharp = true
+        current = rest
+      }
+      ['0', .. rest] => {
+        options.zero = true
+        current = rest
+      }
+      _ => break
     }
-    ['0', .. input] => {
-      options.zero = true
-      continue input
-    }
-    [..] as input => return (options, input)
   }
-  return (options, input)
-}
-
-///|
-fn parse_digit(input : str) -> (Int?, str) {
-  let mut result = 0
-  let mut idx = 0
-  for c in input {
-    if not(c.is_digit(10)) {
-      break
-    }
-    result = result * 10 + (Char::to_int(c) - '0')
-    idx += 1
-  }
-  if idx == 0 {
-    (None, input)
-  } else {
-    (Some(result), input.charcodes(start=idx))
-  }
+  (options, current)
 }
 
 ///|
@@ -183,14 +189,14 @@ fn parse_spec(input : str) -> (FormatSpec, str) {
   let (precision, rest4) = parse_precision(rest3)
   // 5. type
   let (typ, rest5) = parse_type(rest4)
-  let spec = { options, width, grouping: grouping.or_default(), precision, typ }
+  let spec = { options, width, grouping: grouping.unwrap_or_default(), precision, typ }
   (spec, rest5)
 }
 
 ///|
 fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str) {
   let (loc, input) = parse_digit(input)
-  let loc = loc.or(last)
+  let loc = loc.unwrap_or(last)
   let default = LocField(loc~, spec=FormatSpec::default())
   match input {
     [':', .. input] => {
@@ -212,15 +218,15 @@ fn parse_text(input : str) -> (String, str) {
     buf.write_char(char)
     idx += 1
   }
-  (buf.to_string(), input.charcodes(start=idx))
+  (buf.to_string(), input.to_string().substring(start=idx)[:])
 }
 
 ///|
 fn parse_braces(input : str) -> (Char?, str) {
   if input.has_prefix("{{") {
-    (Some('{'), input.charcodes(start=2))
+    (Some('{'), input.to_string().substring(start=2)[:])
   } else if input.has_prefix("}}") {
-    (Some('}'), input.charcodes(start=2))
+    (Some('}'), input.to_string().substring(start=2)[:])
   } else {
     (None, input)
   }
@@ -241,13 +247,13 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
       buf.write_char(v)
     }
     if not(buf.is_empty()) {
-      parts.push(Text(text=buf.to_string()))
+      parts.push(FormatPart::Text(text=buf.to_string()))
       buf.reset()
     }
     match new_chars {
       ['{', .. new_chars] => {
         let (spec, new_chars) = parse_format_part(new_chars, last~)
-        chars = new_chars.charcodes(start=1) // Skip the '}'
+        chars = new_chars.to_string().substring(start=1)[:] // Skip the '}'
         last += 1
         parts.push(spec)
       }
@@ -255,8 +261,8 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
         if new_chars.has_prefix("}") {
           // This is a literal '}' in the format string
           buf.write_char('}')
-          parts.push(Text(text=buf.to_string()))
-          chars = new_chars.charcodes(start=1) // Skip the '}'
+          parts.push(FormatPart::Text(text=buf.to_string()))
+          chars = new_chars.to_string().substring(start=1)[:] // Skip the '}'
         } else {
           // If we reach here, it means we have an unmatched '}'
           abort("Unmatched '}' in format string")

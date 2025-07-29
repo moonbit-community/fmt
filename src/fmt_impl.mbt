@@ -1,10 +1,10 @@
 ///|
 fn _align_string(spec : FormatSpec, value : String) -> String {
   let sb = StringBuilder::new()
-  let width = spec.width.or(0)
+  let width = spec.width.unwrap_or(0)
   let mut value = value
   let padding = width - value.length()
-  let fill = spec.options.fill.or(' ')
+  let fill = spec.options.fill.unwrap_or(' ')
   if spec.options.zero {
     if spec.options.sharp {
       value = value.pad_start(width - 2, '0')
@@ -147,7 +147,7 @@ pub impl Formatter for Bool with format(self : Bool, spec : FormatSpec) -> Strin
 pub impl Formatter for Json with format(self : Json, spec : FormatSpec) -> String {
   let value = match self {
     Json::String(s) => s
-    Json::Number(n) => n.to_string()
+    Json::Number(n, ..) => n.to_string()
     Json::True => "true"
     Json::False => "false"
     Json::Null => "None"
