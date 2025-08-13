@@ -1,3 +1,4 @@
+// Generated using `moon info`, DON'T EDIT IT
 package "BigOrangeQWQ/fmt"
 
 import(
@@ -12,6 +13,8 @@ fn fstring(String, Array[&Formatter]) -> String
 fn jprintln(String, Json) -> Unit
 
 fn jstring(String, Json) -> String
+
+// Errors
 
 // Types and methods
 pub enum Align {
