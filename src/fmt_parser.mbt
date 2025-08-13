@@ -131,7 +131,7 @@ fn parse_digit(input : str) -> (Int?, str) {
   if idx == 0 {
     (None, input)
   } else {
-    (Some(result), input.charcodes(start=idx))
+    (Some(result), input.view(start_offset=idx))
   }
 }
 
@@ -183,14 +183,20 @@ fn parse_spec(input : str) -> (FormatSpec, str) {
   let (precision, rest4) = parse_precision(rest3)
   // 5. type
   let (typ, rest5) = parse_type(rest4)
-  let spec = { options, width, grouping: grouping.or_default(), precision, typ }
+  let spec = {
+    options,
+    width,
+    grouping: grouping.unwrap_or_default(),
+    precision,
+    typ,
+  }
   (spec, rest5)
 }
 
 ///|
 fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str) {
   let (loc, input) = parse_digit(input)
-  let loc = loc.or(last)
+  let loc = loc.unwrap_or(last)
   let default = LocField(loc~, spec=FormatSpec::default())
   match input {
     [':', .. input] => {
@@ -212,15 +218,15 @@ fn parse_text(input : str) -> (String, str) {
     buf.write_char(char)
     idx += 1
   }
-  (buf.to_string(), input.charcodes(start=idx))
+  (buf.to_string(), input.view(start_offset=idx))
 }
 
 ///|
 fn parse_braces(input : str) -> (Char?, str) {
   if input.has_prefix("{{") {
-    (Some('{'), input.charcodes(start=2))
+    (Some('{'), input.view(start_offset=2))
   } else if input.has_prefix("}}") {
-    (Some('}'), input.charcodes(start=2))
+    (Some('}'), input.view(start_offset=2))
   } else {
     (None, input)
   }
@@ -247,7 +253,7 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
     match new_chars {
       ['{', .. new_chars] => {
         let (spec, new_chars) = parse_format_part(new_chars, last~)
-        chars = new_chars.charcodes(start=1) // Skip the '}'
+        chars = new_chars.view(start_offset=1) // Skip the '}'
         last += 1
         parts.push(spec)
       }
@@ -256,7 +262,7 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
           // This is a literal '}' in the format string
           buf.write_char('}')
           parts.push(Text(text=buf.to_string()))
-          chars = new_chars.charcodes(start=1) // Skip the '}'
+          chars = new_chars.view(start_offset=1) // Skip the '}'
         } else {
           // If we reach here, it means we have an unmatched '}'
           abort("Unmatched '}' in format string")
