@@ -1,11 +1,12 @@
 ///|
-typealias @string.View as str
+typealias @string.View as Str
 
 ///|
 pub enum Align {
   Left
   Right
   Center
+  Default
 } derive(Show, Eq)
 
 ///|
@@ -14,6 +15,12 @@ pub enum Grouping {
   Underscore
   Default
 } derive(Show)
+
+///|
+enum Typing {
+  String
+  Digit
+}
 
 ///|
 impl Default for Grouping with default() {
@@ -44,7 +51,7 @@ pub struct Options {
 
 ///|
 impl Default for Options with default() {
-  return { fill: None, align: Align::Left, sharp: false, zero: false }
+  return { fill: None, align: Align::Default, sharp: false, zero: false }
 }
 
 ///|
@@ -79,7 +86,7 @@ fn match_align_char(c : Char) -> Align {
     '<' => Align::Left
     '>' => Align::Right
     '^' => Align::Center
-    _ => Align::Left
+    _ => Align::Default
   }
 }
 
@@ -89,18 +96,18 @@ fn is_align_char(c : Char) -> Bool {
 }
 
 ///|
-fn parse_fill_align(input : str) -> (Char?, Align, str) {
+fn parse_fill_align(input : Str) -> (Char?, Align, Str) {
   match input {
     [any, align_c, .. input] if is_align_char(align_c) =>
       (Some(any), match_align_char(align_c), input)
     [align_c, .. chars] if is_align_char(align_c) =>
       (None, match_align_char(align_c), chars)
-    [..] => (None, Left, input)
+    [..] => (None, Default, input)
   }
 }
 
 ///|
-fn parse_options(input : str) -> (Options, str) {
+fn parse_options(input : Str) -> (Options, Str) {
   let (fill, align, input) = parse_fill_align(input)
   let options = { fill, align, sharp: false, zero: false }
   loop input {
@@ -118,7 +125,7 @@ fn parse_options(input : str) -> (Options, str) {
 }
 
 ///|
-fn parse_digit(input : str) -> (Int?, str) {
+fn parse_digit(input : Str) -> (Int?, Str) {
   let mut result = 0
   let mut idx = 0
   for c in input {
@@ -136,7 +143,7 @@ fn parse_digit(input : str) -> (Int?, str) {
 }
 
 ///|
-fn parse_grouping(input : str) -> (Grouping?, str) {
+fn parse_grouping(input : Str) -> (Grouping?, Str) {
   match input {
     [',', .. chars] => return (Some(Grouping::Comma), chars)
     ['_', .. chars] => return (Some(Grouping::Underscore), chars)
@@ -145,7 +152,7 @@ fn parse_grouping(input : str) -> (Grouping?, str) {
 }
 
 ///|
-fn parse_precision(input : str) -> (Int?, str) {
+fn parse_precision(input : Str) -> (Int?, Str) {
   match input {
     ['.', .. input] => {
       let (prec, rest) = parse_digit(input)
@@ -156,7 +163,7 @@ fn parse_precision(input : str) -> (Int?, str) {
 }
 
 ///|
-fn parse_type(input : str) -> (SpecType, str) {
+fn parse_type(input : Str) -> (SpecType, Str) {
   match input {
     ['b', .. input] => (Binary, input)
     ['d', .. input] => (Digit, input)
@@ -172,7 +179,7 @@ fn parse_type(input : str) -> (SpecType, str) {
 }
 
 ///|
-fn parse_spec(input : str) -> (FormatSpec, str) {
+fn parse_spec(input : Str) -> (FormatSpec, Str) {
   // 1. options
   let (options, rest1) = parse_options(input)
   // 2. width
@@ -194,7 +201,7 @@ fn parse_spec(input : str) -> (FormatSpec, str) {
 }
 
 ///|
-fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str) {
+fn parse_format_part(input : Str, last~ : Int) -> (FormatPart, Str) {
   let (loc, input) = parse_digit(input)
   let loc = loc.unwrap_or(last)
   let default = LocField(loc~, spec=FormatSpec::default())
@@ -208,7 +215,7 @@ fn parse_format_part(input : str, last~ : Int) -> (FormatPart, str) {
 }
 
 ///|
-fn parse_text(input : str) -> (String, str) {
+fn parse_text(input : Str) -> (String, Str) {
   let mut idx = 0
   let buf = StringBuilder::new()
   for char in input {
@@ -222,7 +229,7 @@ fn parse_text(input : str) -> (String, str) {
 }
 
 ///|
-fn parse_braces(input : str) -> (Char?, str) {
+fn parse_braces(input : Str) -> (Char?, Str) {
   if input.has_prefix("{{") {
     (Some('{'), input.view(start_offset=2))
   } else if input.has_prefix("}}") {
@@ -278,31 +285,35 @@ test "parse_format_string" {
   // Test simple format strings with placeholders
   inspect(
     parse_format_string("{}"),
-    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default})]",
+    content="[LocField(loc=0, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default})]",
   )
   inspect(
     parse_format_string("{0}"),
-    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default})]",
+    content="[LocField(loc=0, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default})]",
   )
   inspect(
     parse_format_string("{} {}"),
-    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=\" \"), LocField(loc=1, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default})]",
+    content=(
+      #|[LocField(loc=0, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default})]
+    ),
   )
 
   // Test format strings with text and placeholders
   inspect(
     parse_format_string("Hello {}, world!"),
-    content="[Text(text=\"Hello \"), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=\", world!\")]",
+    content=(
+      #|[Text(text="Hello "), LocField(loc=0, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=", world!")]
+    ),
   )
 
   // Test format strings with specifications
   inspect(
     parse_format_string("{:d}"),
-    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Digit})]",
+    content="[LocField(loc=0, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Digit})]",
   )
   inspect(
     parse_format_string("{0:10x}"),
-    content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: HexLower})]",
+    content="[LocField(loc=0, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: HexLower})]",
   )
 }
 
@@ -321,14 +332,16 @@ test "parse_format_string/escaped_braces" {
   )
   inspect(
     parse_format_string("{{{0}}}"),
-    content="[Text(text=\"{\"), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=\"}\")]",
+    content=(
+      #|[Text(text="{"), LocField(loc=0, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text="}")]
+    ),
   )
 
   // Test mixed escaped and unescaped braces
   inspect(
     parse_format_string("{{ {} }}"),
     content=(
-      #|[Text(text="{"), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=" }")]
+      #|[Text(text="{"), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: None, grouping: Default, precision: None, typ: Default}), Text(text=" }")]
     ),
   )
 }
@@ -349,7 +362,7 @@ test "parse_spec_precision" {
   }
   inspect(
     spec,
-    content="{options: {fill: None, align: Left, sharp: false, zero: false}, width: None, grouping: Default, precision: Some(2), typ: Float}",
+    content="{options: {fill: None, align: Default, sharp: false, zero: false}, width: None, grouping: Default, precision: Some(2), typ: Float}",
   )
 }
 
@@ -361,7 +374,7 @@ test "parse_spec_width" {
   }
   inspect(
     spec,
-    content="{options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}",
+    content="{options: {fill: None, align: Default, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}",
   )
 }
 
@@ -373,7 +386,7 @@ test "parse_format_part" {
   }
   inspect(
     part,
-    content="LocField(loc=3, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit})",
+    content="LocField(loc=3, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit})",
   )
   inspect(rest, content="")
 }
@@ -387,7 +400,7 @@ test "parse_fmt_string" {
   inspect(
     result,
     content=(
-      #|[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Left, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" {"), Text(text="}")]
+      #|[LocField(loc=0, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=0, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" "), LocField(loc=1, spec={options: {fill: None, align: Default, sharp: false, zero: false}, width: Some(10), grouping: Default, precision: None, typ: Digit}), Text(text=" {"), Text(text="}")]
     ),
   )
 }
@@ -416,4 +429,15 @@ test "parse_example_13" {
     result,
     content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: true, zero: false}, width: Some(8), grouping: Default, precision: None, typ: HexLower})]",
   )
+}
+
+///|
+test {
+  let input = "{:_d}"
+  let result = match input using longest {
+    re"((.?[<>=^])|([<>=^]))?([+\- ]?z?#?0?)(\d+)?([,_])?(\.(\d+))?([bcdeeEfFgGnosxX%])?" =>
+      "match found"
+    _ => "no match"
+  }
+
 }

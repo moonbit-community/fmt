@@ -1,19 +1,18 @@
 ///|
-priv struct TestObj {
-  name : String
-  age : Int
-} derive(ToJson)
+// priv struct TestObj {
+//   name : String
+//   age : Int
+// } derive(ToJson)
 
-///|qqc|
-test "example/1" {
-  jprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
-  inspect(
-    jstring("Hello {:05} {}", [1, { name: "Alice", age: 30 }]),
-    content=(
-      #|Hello 00001 {"name": String("Alice"), "age": Number(30)}
-    ),
-  )
-}
+// test "example/1" {
+//   jprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
+//   inspect(
+//     jstring("Hello {:05} {}", [1, { name: "Alice", age: 30 }]),
+//     content=(
+//       #|Hello 00001 {"name": String("Alice"), "age": Number(30)}
+//     ),
+//   )
+// }
 
 ///|
 test "example/2" {
@@ -45,9 +44,18 @@ test "example/4" {
 
 ///|
 test "example/5" {
-  inspect(fstring("{:>>30}", ["test"]), content=">>>>>>>>>>>>>>>>>>>>>>test")
-  inspect(fstring("{:<<30}", ["test"]), content="test<<<<<<<<<<<<<<<<<<<<<<")
-  inspect(fstring("{:^^30}", ["test"]), content="^^^^^^^^^^^test^^^^^^^^^^^")
+  inspect(
+    fstring("{:>>30}", ["test"]),
+    content=">>>>>>>>>>>>>>>>>>>>>>>>>>test",
+  )
+  inspect(
+    fstring("{:<<30}", ["test"]),
+    content="test<<<<<<<<<<<<<<<<<<<<<<<<<<",
+  )
+  inspect(
+    fstring("{:^^30}", ["test"]),
+    content="^^^^^^^^^^^^^test^^^^^^^^^^^^^",
+  )
 }
 
 ///|
@@ -104,7 +112,7 @@ test "example/12" {
 
 ///|
 test "example/13" {
-  inspect(fstring("{:<#8x}", [15]), content="0xf")
+  inspect(fstring("{:>#8x}", [15]), content="     0xf")
 }
 
 ///|

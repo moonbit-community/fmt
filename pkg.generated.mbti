@@ -10,10 +10,6 @@ fn fprintln(String, Array[&Formatter]) -> Unit
 
 fn fstring(String, Array[&Formatter]) -> String
 
-fn jprintln(String, Json) -> Unit
-
-fn jstring(String, Json) -> String
-
 // Errors
 
 // Types and methods
@@ -21,6 +17,7 @@ pub enum Align {
   Left
   Right
   Center
+  Default
 }
 impl Eq for Align
 impl Show for Align
@@ -63,11 +60,14 @@ pub enum SpecType {
 }
 impl Show for SpecType
 
+type Typing
+
 // Type aliases
 
 // Traits
 pub(open) trait Formatter : Show {
   format(Self, FormatSpec) -> String = _
+  format_stream(Self, FormatSpec, StringBuilder) -> Unit
   display(Self, FormatSpec, &Logger) -> Unit = _
 }
 impl Formatter for Bool
