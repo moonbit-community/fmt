@@ -4,18 +4,6 @@
 
 This library provides powerful formatting capabilities similar to Python's `str.format`, supporting multi-type and multi-style string formatting. The underlying float-to-string algorithm is based on [Moonbit Core Ryu](https://github.com/moonbitlang/core/tree/main/double/internal/ryu).
 
-### Struct to Json automatically
-
-```moonbit
-struct TestObj {
-  name : String
-  age : Int
-} derive(ToJson)
-
-jprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
-// Output: Hello 00001 {"name": String("Alice"), "age": Number(30)}
-```
-
 ### Multiple arguments and brace escaping
 
 ```moonbit
