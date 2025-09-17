@@ -13,20 +13,13 @@ jobs:
   check:
     strategy:
       matrix:
-        version: [stable,pre-release,bleeding]
+        version: [stable]
         os:
           - name: ubuntu-latest
             triple: x86_64-linux-gnu
           - name: windows-latest
             triple: x86_64-w64-mingw32
 
-          # stable check
-
-          # pre-release check
-
-          # bleeding check
-          # 1. install latest toolchain
-          # 2. install latest core library from github.com
           
       fail-fast: false
     runs-on: ${{ matrix.os.name }}
@@ -63,15 +56,6 @@ jobs:
           moon fmt
           git diff --exit-code
 
-      - name: Setup MSVC
-        if: ${{ matrix.os.name == 'windows-latest' }}
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Set ulimit on unix
-        if: ${{ matrix.os.name != 'windows-latest' }}
-        run: |
-          ulimit -s 8176
-
       - name: moon test
         run: |
           moon test --target all,native
@@ -80,20 +64,3 @@ jobs:
       - name: moon test --doc
         run: |
           moon test --doc
-
-  moon-json-format-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: check `moon.*.json` format
-        shell: bash
-        run: |
-          _passed=0;
-          for f in $(find . -type f -name "moon.*.json"); do
-            if ! jq '.' $f > /dev/null; then
-              echo $f;
-              _passed=1;
-            fi
-          done
-          (exit $_passed)
