@@ -2,22 +2,22 @@
 typealias @string.View as Str
 
 ///|
-pub enum Align {
+priv enum Align {
   Left
   Right
   Center
   Default
-} derive(Show, Eq)
+} derive(Show)
 
 ///|
-pub enum Grouping {
+priv enum Grouping {
   Comma
   Underscore
   Default
 } derive(Show)
 
 ///|
-enum Typing {
+priv enum Typing {
   String
   Digit
 }
@@ -28,7 +28,7 @@ impl Default for Grouping with default() {
 }
 
 ///|
-pub enum SpecType {
+priv enum SpecType {
   Binary
   Digit
   ExponentLower
@@ -42,7 +42,7 @@ pub enum SpecType {
 } derive(Show)
 
 ///|
-pub struct Options {
+priv struct Options {
   fill : Char?
   align : Align
   mut sharp : Bool
@@ -55,7 +55,7 @@ impl Default for Options with default() {
 }
 
 ///|
-pub struct FormatSpec {
+struct FormatSpec {
   options : Options
   width : Int?
   grouping : Grouping

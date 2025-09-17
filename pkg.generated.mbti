@@ -13,59 +13,13 @@ fn fstring(String, Array[&Formatter]) -> String
 // Errors
 
 // Types and methods
-pub enum Align {
-  Left
-  Right
-  Center
-  Default
-}
-impl Eq for Align
-impl Show for Align
-
-pub struct FormatSpec {
-  options : Options
-  width : Int?
-  grouping : Grouping
-  precision : Int?
-  typ : SpecType
-}
+type FormatSpec
 impl Show for FormatSpec
-
-pub enum Grouping {
-  Comma
-  Underscore
-  Default
-}
-impl Show for Grouping
-
-pub struct Options {
-  fill : Char?
-  align : Align
-  mut sharp : Bool
-  mut zero : Bool
-}
-impl Show for Options
-
-pub enum SpecType {
-  Binary
-  Digit
-  ExponentLower
-  ExponentUpper
-  Float
-  Octal
-  HexLower
-  HexUpper
-  Percent
-  Default
-}
-impl Show for SpecType
-
-type Typing
 
 // Type aliases
 
 // Traits
-pub(open) trait Formatter : Show {
+pub(open) trait Formatter {
   format(Self, FormatSpec) -> String = _
   format_stream(Self, FormatSpec, StringBuilder) -> Unit
   display(Self, FormatSpec, &Logger) -> Unit = _
@@ -81,6 +35,15 @@ impl Formatter for UInt64
 impl Formatter for Float
 impl Formatter for Double
 impl Formatter for String
+impl[T : ToJson] Formatter for FixedArray[T]
 impl Formatter for @bigint.BigInt
+impl[T : ToJson] Formatter for Array[T]
 impl Formatter for Json
+impl[K : Show, V : ToJson] Formatter for Map[K, V]
+impl[T : ToJson] Formatter for (T, T)
+impl[T : ToJson] Formatter for (T, T, T)
+impl[T : ToJson] Formatter for (T, T, T, T)
+impl[T : ToJson] Formatter for (T, T, T, T, T)
+impl[T : ToJson] Formatter for (T, T, T, T, T, T)
+impl[T : ToJson] Formatter for (T, T, T, T, T, T, T)
 
