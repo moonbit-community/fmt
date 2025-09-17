@@ -430,14 +430,3 @@ test "parse_example_13" {
     content="[LocField(loc=0, spec={options: {fill: None, align: Left, sharp: true, zero: false}, width: Some(8), grouping: Default, precision: None, typ: HexLower})]",
   )
 }
-
-///|
-test {
-  let input = "{:_d}"
-  let result = match input using longest {
-    re"((.?[<>=^])|([<>=^]))?([+\- ]?z?#?0?)(\d+)?([,_])?(\.(\d+))?([bcdeeEfFgGnosxX%])?" =>
-      "match found"
-    _ => "no match"
-  }
-
-}
