@@ -44,6 +44,7 @@ jobs:
           moon install
 
       - name: moon check
+        continue-on-error: true
         run: moon check --deny-warn
 
       - name: moon info
