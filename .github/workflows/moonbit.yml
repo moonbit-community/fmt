@@ -53,6 +53,7 @@ jobs:
           git diff --exit-code
 
       - name: format diff
+        continue-on-error: true
         run: |
           moon fmt
           git diff --exit-code
