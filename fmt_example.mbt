@@ -17,7 +17,6 @@
 ///|
 test "example/2" {
   let parts = "{0} {1} {{not things}} {1} {2:.2f}"
-  fprintln(parts, ["hello", "world", 42])
   inspect(
     fstring(parts, ["hello", "world", 42]),
     content="hello world {not things} world 42.00",
@@ -26,7 +25,7 @@ test "example/2" {
 
 ///|
 test "example/3" {
-  fprintln("{} {} {}", ["hello", "world", 42])
+  // fprintln("{} {} {}", ["hello", "world", 42])
   inspect(fstring("{} {} {}", ["hello", "world", 42]), content="hello world 42")
 }
 

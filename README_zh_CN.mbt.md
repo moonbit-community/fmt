@@ -2,64 +2,63 @@
 
 本库提供了类似 Python `str.format` 的强大格式化能力，支持多类型、多样式的字符串格式化，底层浮点数转字符串算法基于 [Moonbit Core Ryu](https://github.com/moonbitlang/core/tree/main/double/internal/ryu)。
 
-### 结构体自动转 Json
-
-```moonbit
-struct TestObj {
-  name : String
-  age : Int
-} derive(ToJson)
-
-jprintln("Hello {:05} {}", [1, { name: "Alice", age: 30 }])
-// 输出: Hello 00001 {"name": String("Alice"), "age": Number(30)}
-```
-
 ### 多参数与花括号转义
 
 ```moonbit
-let parts = "{0} {1} {{not things}} {1} {2:.2f}"
-fprintln(parts, ["hello", "world", 42])
+test {
+  let parts = "{0} {1} {{not things}} {1} {2:.2f}"
+  @fmt.fprintln(parts, ["hello", "world", 42])
+}
 // 输出: hello world {not things} world 42.00
 ```
 
 ### 顺序参数
 
 ```moonbit
-fprintln("{} {} {}", ["hello", "world", 42])
+test {
+  @fmt.fprintln("{} {} {}", ["hello", "world", 42])
+}
 // 输出: hello world 42
 ```
 
 ### 进制与前缀格式化
 
 ```moonbit
-fstring("{:o}", [8])      // "10"
-fstring("{:#o}", [8])     // "0o10"
-fstring("{:b}", [16])     // "10000"
+test {
+  @json.inspect(@fmt.fstring("{:o}", [8]), content="10")
+  @json.inspect(@fmt.fstring("{:#o}", [8]), content="0o10")
+  @json.inspect(@fmt.fstring("{:b}", [16]), content="10000")
+}
 ```
 
 ### 对齐与填充
 
 ```moonbit
-fstring("{:>>30}", ["test"]) // ">>>>>>>>>>>>>>>>>>>>>>test"
-fstring("{:<<30}", ["test"]) // "test<<<<<<<<<<<<<<<<<<<<<<"
-fstring("{:^^30}", ["test"]) // "^^^^^^^^^^^test^^^^^^^^^^^"
+test {
+  @json.inspect(@fmt.fstring("{:>>30}", ["test"]), content=(">>>>>>>>>>>>>>>>>>>>>>>>>>test"))
+  @json.inspect(@fmt.fstring("{:<<30}", ["test"]), content=("test<<<<<<<<<<<<<<<<<<<<<<<<<<"))
+  @json.inspect(@fmt.fstring("{:^^30}", ["test"]), content=("^^^^^^^^^^^^^test^^^^^^^^^^^^^"))
+}
 ```
 
 ### 分组分隔符
 
 ```moonbit
-fstring("{:_d}", [4285565, 59])         // "428_556_5"
-fstring("{:,d}", [4285565, 3])          // "428,556,5"
-fstring("{:#_b}", [4285565, 3])         // "0b1000_0010_1100_1000_1111_101"
+test {
+  @json.inspect(@fmt.fstring("{:_d}", [4285565, 59]), content="428_556_5")
+  @json.inspect(@fmt.fstring("{:,d}", [4285565, 3]), content="428,556,5")
+  @json.inspect(@fmt.fstring("{:#_b}", [4285565, 3]), content="0b1000_0010_1100_1000_1111_101")
+}
 ```
 
 ### 实数精度
 
 ```moonbit
-fstring("{:.5E}", [42.5]) // 4.25000E+01
-fstring("{:.10e}", [4464252.51334]) // 4.4642525133e+06
-fstring("{:.17e}", [4464252.51334]) // 4.46425251334000006e+06
-
+test {
+  @json.inspect(@fmt.fstring("{:.5E}", [42.5]), content="4.25000E+01")
+  @json.inspect(@fmt.fstring("{:.10e}", [4464252.51334]), content="4.4642525133e+06")
+  @json.inspect(@fmt.fstring("{:.17e}", [4464252.51334]), content="4.46425251334000006e+06")
+}
 ```
 
 ### 百分比/科学计数法
