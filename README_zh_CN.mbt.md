@@ -5,6 +5,7 @@
 ### 多参数与花括号转义
 
 ```moonbit
+///|
 test {
   let parts = "{0} {1} {{not things}} {1} {2:.2f}"
   @fmt.fprintln(parts, ["hello", "world", 42])
@@ -15,6 +16,7 @@ test {
 ### 顺序参数
 
 ```moonbit
+///|
 test {
   @fmt.fprintln("{} {} {}", ["hello", "world", 42])
 }
@@ -24,6 +26,7 @@ test {
 ### 进制与前缀格式化
 
 ```moonbit
+///|
 test {
   @json.inspect(@fmt.fstring("{:o}", [8]), content="10")
   @json.inspect(@fmt.fstring("{:#o}", [8]), content="0o10")
@@ -34,30 +37,51 @@ test {
 ### 对齐与填充
 
 ```moonbit
+///|
 test {
-  @json.inspect(@fmt.fstring("{:>>30}", ["test"]), content=(">>>>>>>>>>>>>>>>>>>>>>>>>>test"))
-  @json.inspect(@fmt.fstring("{:<<30}", ["test"]), content=("test<<<<<<<<<<<<<<<<<<<<<<<<<<"))
-  @json.inspect(@fmt.fstring("{:^^30}", ["test"]), content=("^^^^^^^^^^^^^test^^^^^^^^^^^^^"))
+  @json.inspect(
+    @fmt.fstring("{:>>30}", ["test"]),
+    content=">>>>>>>>>>>>>>>>>>>>>>>>>>test",
+  )
+  @json.inspect(
+    @fmt.fstring("{:<<30}", ["test"]),
+    content="test<<<<<<<<<<<<<<<<<<<<<<<<<<",
+  )
+  @json.inspect(
+    @fmt.fstring("{:^^30}", ["test"]),
+    content="^^^^^^^^^^^^^test^^^^^^^^^^^^^",
+  )
 }
 ```
 
 ### 分组分隔符
 
 ```moonbit
+///|
 test {
   @json.inspect(@fmt.fstring("{:_d}", [4285565, 59]), content="428_556_5")
   @json.inspect(@fmt.fstring("{:,d}", [4285565, 3]), content="428,556,5")
-  @json.inspect(@fmt.fstring("{:#_b}", [4285565, 3]), content="0b1000_0010_1100_1000_1111_101")
+  @json.inspect(
+    @fmt.fstring("{:#_b}", [4285565, 3]),
+    content="0b1000_0010_1100_1000_1111_101",
+  )
 }
 ```
 
 ### 实数精度
 
 ```moonbit
+///|
 test {
   @json.inspect(@fmt.fstring("{:.5E}", [42.5]), content="4.25000E+01")
-  @json.inspect(@fmt.fstring("{:.10e}", [4464252.51334]), content="4.4642525133e+06")
-  @json.inspect(@fmt.fstring("{:.17e}", [4464252.51334]), content="4.46425251334000006e+06")
+  @json.inspect(
+    @fmt.fstring("{:.10e}", [4464252.51334]),
+    content="4.4642525133e+06",
+  )
+  @json.inspect(
+    @fmt.fstring("{:.17e}", [4464252.51334]),
+    content="4.46425251334000006e+06",
+  )
 }
 ```
 

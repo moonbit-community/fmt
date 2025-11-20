@@ -105,7 +105,7 @@ test "example/12" {
 }
 
 ///|
-test "example/12" {
+test "example/12b" {
   inspect(fstring("{:#09x}", [15]), content="0x000000f")
 }
 
