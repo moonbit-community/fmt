@@ -7,9 +7,10 @@ This library provides powerful formatting capabilities similar to Python's `str.
 ### Multiple arguments and brace escaping
 
 ```moonbit
+///|
 test {
-    let parts = "{0} {1} {{not things}} {1} {2:.2f}"
-    @fmt.fprintln(parts, ["hello", "world", 42])
+  let parts = "{0} {1} {{not things}} {1} {2:.2f}"
+  @fmt.fprintln(parts, ["hello", "world", 42])
 }
 // Output: hello world {not things} world 42.00
 ```
@@ -17,8 +18,9 @@ test {
 ### Positional arguments
 
 ```moonbit
+///|
 test {
-    @fmt.fprintln("{} {} {}", ["hello", "world", 42])
+  @fmt.fprintln("{} {} {}", ["hello", "world", 42])
 }
 // Output: hello world 42
 ```
@@ -26,40 +28,62 @@ test {
 ### Radix and prefix formatting
 
 ```moonbit
+///|
 test {
-    @json.inspect(@fmt.fstring("{:o}", [8]), content="10")
-    @json.inspect(@fmt.fstring("{:#o}", [8]), content="0o10")
-    @json.inspect(@fmt.fstring("{:b}", [16]), content="10000")
+  @json.inspect(@fmt.fstring("{:o}", [8]), content="10")
+  @json.inspect(@fmt.fstring("{:#o}", [8]), content="0o10")
+  @json.inspect(@fmt.fstring("{:b}", [16]), content="10000")
 }
 ```
 
 ### Alignment and padding
 
 ```moonbit
+///|
 test {
-    @json.inspect(@fmt.fstring("{:>>30}", ["test"]), content=(">>>>>>>>>>>>>>>>>>>>>>>>>>test"))
-    @json.inspect(@fmt.fstring("{:<<30}", ["test"]), content=("test<<<<<<<<<<<<<<<<<<<<<<<<<<"))
-    @json.inspect(@fmt.fstring("{:^^30}", ["test"]), content=("^^^^^^^^^^^^^test^^^^^^^^^^^^^"))
+  @json.inspect(
+    @fmt.fstring("{:>>30}", ["test"]),
+    content=">>>>>>>>>>>>>>>>>>>>>>>>>>test",
+  )
+  @json.inspect(
+    @fmt.fstring("{:<<30}", ["test"]),
+    content="test<<<<<<<<<<<<<<<<<<<<<<<<<<",
+  )
+  @json.inspect(
+    @fmt.fstring("{:^^30}", ["test"]),
+    content="^^^^^^^^^^^^^test^^^^^^^^^^^^^",
+  )
 }
 ```
 
 ### Grouping separators
 
 ```moonbit
+///|
 test {
-    @json.inspect(@fmt.fstring("{:_d}", [4285565, 59]), content="428_556_5")
-    @json.inspect(@fmt.fstring("{:,d}", [4285565, 3]), content="428,556,5")
-    @json.inspect(@fmt.fstring("{:#_b}", [4285565, 3]), content="0b1000_0010_1100_1000_1111_101")
+  @json.inspect(@fmt.fstring("{:_d}", [4285565, 59]), content="428_556_5")
+  @json.inspect(@fmt.fstring("{:,d}", [4285565, 3]), content="428,556,5")
+  @json.inspect(
+    @fmt.fstring("{:#_b}", [4285565, 3]),
+    content="0b1000_0010_1100_1000_1111_101",
+  )
 }
 ```
 
 ### Precision
 
 ```moonbit
+///|
 test {
-    @json.inspect(@fmt.fstring("{:.5E}", [42.5]), content="4.25000E+01")
-    @json.inspect(@fmt.fstring("{:.10e}", [4464252.51334]), content="4.4642525133e+06")
-    @json.inspect(@fmt.fstring("{:.17e}", [4464252.51334]), content="4.46425251334000006e+06")
+  @json.inspect(@fmt.fstring("{:.5E}", [42.5]), content="4.25000E+01")
+  @json.inspect(
+    @fmt.fstring("{:.10e}", [4464252.51334]),
+    content="4.4642525133e+06",
+  )
+  @json.inspect(
+    @fmt.fstring("{:.17e}", [4464252.51334]),
+    content="4.46425251334000006e+06",
+  )
 }
 ```
 

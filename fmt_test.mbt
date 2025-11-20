@@ -57,7 +57,7 @@ test "multi-arg and mixed" {
   )
   assert_eq(
     @fmt.fstring("{}-{:*^6}-{:<4}", ["a", "b", "c"]), // String align default is left
-    @fmt.fstring("{}-{:*^6}-{:4}", ["a", "b", "c", ]),
+    @fmt.fstring("{}-{:*^6}-{:4}", ["a", "b", "c"]),
   )
   @json.inspect(@fmt.fstring("{0} {1} {0}", ["x", "y"]), content="x y x")
 }
@@ -76,7 +76,7 @@ test "fail align_sharp" {
   )
 }
 
-
+///|
 test "json" {
   @json.inspect(
     @fmt.fstring("{0} {1} {{not things}} {1} {2:.2f}", ["hello", "world", 42]),
