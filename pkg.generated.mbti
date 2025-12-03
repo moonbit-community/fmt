@@ -6,15 +6,15 @@ import(
 )
 
 // Values
-fn fprintln(String, Array[&Formatter]) -> Unit
+pub fn fprintln(String, Array[&Formatter]) -> Unit
 
-fn fstring(String, Array[&Formatter]) -> String
+pub fn fstring(String, Array[&Formatter]) -> String
 
 // Errors
 
 // Types and methods
 type FormatSpec
-impl Show for FormatSpec
+pub impl Show for FormatSpec
 
 // Type aliases
 
@@ -24,26 +24,26 @@ pub(open) trait Formatter {
   format_stream(Self, FormatSpec, StringBuilder) -> Unit
   display(Self, FormatSpec, &Logger) -> Unit = _
 }
-impl Formatter for Bool
-impl Formatter for Char
-impl Formatter for Int
-impl Formatter for Int16
-impl Formatter for Int64
-impl Formatter for UInt
-impl Formatter for UInt16
-impl Formatter for UInt64
-impl Formatter for Float
-impl Formatter for Double
-impl Formatter for String
-impl[T : ToJson] Formatter for FixedArray[T]
-impl Formatter for @bigint.BigInt
-impl[T : ToJson] Formatter for Array[T]
-impl Formatter for Json
-impl[K : Show, V : ToJson] Formatter for Map[K, V]
-impl[T : ToJson] Formatter for (T, T)
-impl[T : ToJson] Formatter for (T, T, T)
-impl[T : ToJson] Formatter for (T, T, T, T)
-impl[T : ToJson] Formatter for (T, T, T, T, T)
-impl[T : ToJson] Formatter for (T, T, T, T, T, T)
-impl[T : ToJson] Formatter for (T, T, T, T, T, T, T)
+pub impl Formatter for Bool
+pub impl Formatter for Char
+pub impl Formatter for Int
+pub impl Formatter for Int16
+pub impl Formatter for Int64
+pub impl Formatter for UInt
+pub impl Formatter for UInt16
+pub impl Formatter for UInt64
+pub impl Formatter for Float
+pub impl Formatter for Double
+pub impl Formatter for String
+pub impl[T : ToJson] Formatter for FixedArray[T]
+pub impl Formatter for @bigint.BigInt
+pub impl[T : ToJson] Formatter for Array[T]
+pub impl Formatter for Json
+pub impl[K : Show, V : ToJson] Formatter for Map[K, V]
+pub impl[T : ToJson] Formatter for (T, T)
+pub impl[T : ToJson] Formatter for (T, T, T)
+pub impl[T : ToJson] Formatter for (T, T, T, T)
+pub impl[T : ToJson] Formatter for (T, T, T, T, T)
+pub impl[T : ToJson] Formatter for (T, T, T, T, T, T)
+pub impl[T : ToJson] Formatter for (T, T, T, T, T, T, T)
 
