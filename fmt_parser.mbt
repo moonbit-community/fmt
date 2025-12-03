@@ -95,7 +95,7 @@ fn is_align_char(c : Char) -> Bool {
 }
 
 ///|
-fn parse_fill_align(input : @string.View) -> (Char?, Align, @string.View) {
+fn parse_fill_align(input : StringView) -> (Char?, Align, StringView) {
   match input {
     [any, align_c, .. input] if is_align_char(align_c) =>
       (Some(any), match_align_char(align_c), input)
@@ -106,7 +106,7 @@ fn parse_fill_align(input : @string.View) -> (Char?, Align, @string.View) {
 }
 
 ///|
-fn parse_options(input : @string.View) -> (Options, @string.View) {
+fn parse_options(input : StringView) -> (Options, StringView) {
   let (fill, align, input) = parse_fill_align(input)
   let options = { fill, align, sharp: false, zero: false }
   loop input {
@@ -124,7 +124,7 @@ fn parse_options(input : @string.View) -> (Options, @string.View) {
 }
 
 ///|
-fn parse_digit(input : @string.View) -> (Int?, @string.View) {
+fn parse_digit(input : StringView) -> (Int?, StringView) {
   let mut result = 0
   let mut idx = 0
   for c in input {
@@ -142,7 +142,7 @@ fn parse_digit(input : @string.View) -> (Int?, @string.View) {
 }
 
 ///|
-fn parse_grouping(input : @string.View) -> (Grouping?, @string.View) {
+fn parse_grouping(input : StringView) -> (Grouping?, StringView) {
   match input {
     [',', .. chars] => return (Some(Grouping::Comma), chars)
     ['_', .. chars] => return (Some(Grouping::Underscore), chars)
@@ -151,7 +151,7 @@ fn parse_grouping(input : @string.View) -> (Grouping?, @string.View) {
 }
 
 ///|
-fn parse_precision(input : @string.View) -> (Int?, @string.View) {
+fn parse_precision(input : StringView) -> (Int?, StringView) {
   match input {
     ['.', .. input] => {
       let (prec, rest) = parse_digit(input)
@@ -162,7 +162,7 @@ fn parse_precision(input : @string.View) -> (Int?, @string.View) {
 }
 
 ///|
-fn parse_type(input : @string.View) -> (SpecType, @string.View) {
+fn parse_type(input : StringView) -> (SpecType, StringView) {
   match input {
     ['b', .. input] => (Binary, input)
     ['d', .. input] => (Digit, input)
@@ -178,7 +178,7 @@ fn parse_type(input : @string.View) -> (SpecType, @string.View) {
 }
 
 ///|
-fn parse_spec(input : @string.View) -> (FormatSpec, @string.View) {
+fn parse_spec(input : StringView) -> (FormatSpec, StringView) {
   // 1. options
   let (options, rest1) = parse_options(input)
   // 2. width
@@ -201,9 +201,9 @@ fn parse_spec(input : @string.View) -> (FormatSpec, @string.View) {
 
 ///|
 fn parse_format_part(
-  input : @string.View,
+  input : StringView,
   last~ : Int,
-) -> (FormatPart, @string.View) {
+) -> (FormatPart, StringView) {
   let (loc, input) = parse_digit(input)
   let loc = loc.unwrap_or(last)
   let default = LocField(loc~, spec=FormatSpec::default())
@@ -217,7 +217,7 @@ fn parse_format_part(
 }
 
 ///|
-fn parse_text(input : @string.View) -> (String, @string.View) {
+fn parse_text(input : StringView) -> (String, StringView) {
   let mut idx = 0
   let buf = StringBuilder::new()
   for char in input {
@@ -231,7 +231,7 @@ fn parse_text(input : @string.View) -> (String, @string.View) {
 }
 
 ///|
-fn parse_braces(input : @string.View) -> (Char?, @string.View) {
+fn parse_braces(input : StringView) -> (Char?, StringView) {
   if input.has_prefix("{{") {
     (Some('{'), input.view(start_offset=2))
   } else if input.has_prefix("}}") {
