@@ -134,7 +134,7 @@ impl Show for Options with output(self, logger) {
 }
 
 ///|
-impl Show for FormatSpec with output(self, logger) {
+pub impl Show for FormatSpec with output(self, logger) {
   logger.write_string("{options: ")
   logger.write_object(self.options)
   logger.write_string(", width: ")
