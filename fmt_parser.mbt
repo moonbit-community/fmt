@@ -196,18 +196,19 @@ fn parse_fill_align(input : StringView) -> (Char?, Align, StringView) {
 fn parse_options(input : StringView) -> (Options, StringView) {
   let (fill, align, input) = parse_fill_align(input)
   let options = { fill, align, sharp: false, zero: false }
-  loop input {
-    ['#', .. input] => {
-      options.sharp = true
-      continue input
+  for input = input {
+    match input {
+      ['#', .. input] => {
+        options.sharp = true
+        continue input
+      }
+      ['0', .. input] => {
+        options.zero = true
+        continue input
+      }
+      [..] as input => break (options, input)
     }
-    ['0', .. input] => {
-      options.zero = true
-      continue input
-    }
-    [..] as input => return (options, input)
   }
-  return (options, input)
 }
 
 ///|
