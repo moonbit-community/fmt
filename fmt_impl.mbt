@@ -85,9 +85,9 @@ fn align_string(
 pub impl Formatter for Int with format_stream(self, spec, sb) -> Unit {
   let value = match spec.typ {
     Float | ExponentLower | ExponentUpper | Percent =>
-      self.to_double() |> format_float(spec, _)
+      format_float(spec, self.to_double())
     Digit | Binary | Octal | HexLower | HexUpper | Default =>
-      self.to_int64() |> format_digit(spec, _)
+      format_digit(spec, self.to_int64())
   }
   align_string(spec, value, sb, typ=Typing::Digit)
 }
@@ -96,9 +96,9 @@ pub impl Formatter for Int with format_stream(self, spec, sb) -> Unit {
 pub impl Formatter for Int16 with format_stream(self, spec, sb) -> Unit {
   let value = match spec.typ {
     Float | ExponentLower | ExponentUpper | Percent =>
-      self.to_int().to_double() |> format_float(spec, _)
+      format_float(spec, self.to_int().to_double())
     Digit | Binary | Octal | HexLower | HexUpper | Default =>
-      self.to_int64() |> format_digit(spec, _)
+      format_digit(spec, self.to_int64())
   }
   align_string(spec, value, sb, typ=Typing::Digit)
 }
@@ -107,9 +107,9 @@ pub impl Formatter for Int16 with format_stream(self, spec, sb) -> Unit {
 pub impl Formatter for Int64 with format_stream(self, spec, sb) -> Unit {
   let value = match spec.typ {
     Float | ExponentLower | ExponentUpper | Percent =>
-      self.to_double() |> format_float(spec, _)
+      format_float(spec, self.to_double())
     Digit | Binary | Octal | HexLower | HexUpper | Default =>
-      self |> format_digit(spec, _)
+      format_digit(spec, self)
   }
   align_string(spec, value, sb, typ=Typing::Digit)
 }
@@ -124,9 +124,9 @@ pub impl Formatter for BigInt with format_stream(self, spec, sb) -> Unit {
 pub impl Formatter for UInt with format_stream(self, spec, sb) -> Unit {
   let value = match spec.typ {
     Float | ExponentLower | ExponentUpper | Percent =>
-      self.to_double() |> format_float(spec, _)
+      format_float(spec, self.to_double())
     Digit | Binary | Octal | HexLower | HexUpper | Default =>
-      self.to_int64() |> format_digit(spec, _)
+      format_digit(spec, self.to_int64())
   }
   align_string(spec, value, sb, typ=Typing::Digit)
 }
@@ -135,9 +135,9 @@ pub impl Formatter for UInt with format_stream(self, spec, sb) -> Unit {
 pub impl Formatter for UInt64 with format_stream(self, spec, sb) -> Unit {
   let value = match spec.typ {
     Float | ExponentLower | ExponentUpper | Percent =>
-      self.to_int().to_double() |> format_float(spec, _)
+      format_float(spec, self.to_int().to_double())
     Digit | Binary | Octal | HexLower | HexUpper | Default =>
-      self.to_int().to_int64() |> format_digit(spec, _)
+      format_digit(spec, self.to_int().to_int64())
   }
   align_string(spec, value, sb, typ=Typing::Digit)
 }
@@ -146,9 +146,9 @@ pub impl Formatter for UInt64 with format_stream(self, spec, sb) -> Unit {
 pub impl Formatter for UInt16 with format_stream(self, spec, sb) -> Unit {
   let value = match spec.typ {
     Float | ExponentLower | ExponentUpper | Percent =>
-      self.to_int().to_double() |> format_float(spec, _)
+      format_float(spec, self.to_int().to_double())
     Digit | Binary | Octal | HexLower | HexUpper | Default =>
-      self.to_int().to_int64() |> format_digit(spec, _)
+      format_digit(spec, self.to_int().to_int64())
   }
   align_string(spec, value, sb, typ=Typing::Digit)
 }
@@ -157,9 +157,9 @@ pub impl Formatter for UInt16 with format_stream(self, spec, sb) -> Unit {
 pub impl Formatter for Float with format_stream(self, spec, sb) -> Unit {
   let value = match spec.typ {
     Float | ExponentLower | ExponentUpper | Percent | Default =>
-      self.to_double() |> format_float(spec, _)
+      format_float(spec, self.to_double())
     Digit | Binary | Octal | HexLower | HexUpper =>
-      self.to_int().to_int64() |> format_digit(spec, _)
+      format_digit(spec, self.to_int().to_int64())
   }
   align_string(spec, value, sb, typ=Typing::Digit)
 }
@@ -168,9 +168,9 @@ pub impl Formatter for Float with format_stream(self, spec, sb) -> Unit {
 pub impl Formatter for Double with format_stream(self, spec, sb) -> Unit {
   let value = match spec.typ {
     Float | ExponentLower | ExponentUpper | Percent | Default =>
-      self |> format_float(spec, _)
+      format_float(spec, self)
     Digit | Binary | Octal | HexLower | HexUpper =>
-      self.to_int().to_int64() |> format_digit(spec, _)
+      format_digit(spec, self.to_int().to_int64())
   }
   align_string(spec, value, sb, typ=Typing::Digit)
 }
