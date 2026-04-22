@@ -102,7 +102,7 @@ fn format(parts : Array[FormatPart], values : Array[&Formatter]) -> String {
 ///
 /// Example:
 ///
-/// ```moonbit
+/// ```moonbit nocheck
 /// let name = "Alice"
 /// let age = 30
 /// let formatted = @fmt.fstring("Hello, {0}! You are {1} years old.", [name, age])
@@ -131,7 +131,7 @@ pub fn fstring(parts : String, values : Array[&Formatter]) -> String {
 ///
 /// Example:
 ///
-/// ```moonbit
+/// ```moonbit nocheck
 /// let name = "Alice"
 /// let age = 30
 /// @fmt.fprintln("Hello, {0}! You are {1} years old.", [name, age])

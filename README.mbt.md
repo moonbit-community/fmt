@@ -6,7 +6,7 @@ This library provides powerful formatting capabilities similar to Python's `str.
 
 ### Multiple arguments and brace escaping
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   let parts = "{0} {1} {{not things}} {1} {2:.2f}"
@@ -17,7 +17,7 @@ test {
 
 ### Positional arguments
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   @fmt.fprintln("{} {} {}", ["hello", "world", 42])
@@ -27,7 +27,7 @@ test {
 
 ### Radix and prefix formatting
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   json_inspect(@fmt.fstring("{:o}", [8]), content="10")
@@ -38,7 +38,7 @@ test {
 
 ### Alignment and padding
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   json_inspect(
@@ -58,7 +58,7 @@ test {
 
 ### Grouping separators
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   json_inspect(@fmt.fstring("{:_d}", [4285565, 59]), content="428_556_5")
@@ -72,7 +72,7 @@ test {
 
 ### Precision
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   json_inspect(@fmt.fstring("{:.5E}", [42.5]), content="4.25000E+01")

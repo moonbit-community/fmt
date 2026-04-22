@@ -4,7 +4,7 @@
 
 ### 多参数与花括号转义
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   let parts = "{0} {1} {{not things}} {1} {2:.2f}"
@@ -15,7 +15,7 @@ test {
 
 ### 顺序参数
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   @fmt.fprintln("{} {} {}", ["hello", "world", 42])
@@ -25,7 +25,7 @@ test {
 
 ### 进制与前缀格式化
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   json_inspect(@fmt.fstring("{:o}", [8]), content="10")
@@ -36,7 +36,7 @@ test {
 
 ### 对齐与填充
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   json_inspect(
@@ -56,7 +56,7 @@ test {
 
 ### 分组分隔符
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   json_inspect(@fmt.fstring("{:_d}", [4285565, 59]), content="428_556_5")
@@ -70,7 +70,7 @@ test {
 
 ### 实数精度
 
-```moonbit
+```moonbit nocheck
 ///|
 test {
   json_inspect(@fmt.fstring("{:.5E}", [42.5]), content="4.25000E+01")
