@@ -2,7 +2,7 @@
 fn format_float(spec : FormatSpec, value : Double) -> String {
   let doble_string = match spec.typ {
     Float =>
-      if not(spec.precision is None) {
+      if !(spec.precision is None) {
         @ryu.ryu_to_string_precision(value, precision=spec.precision.unwrap())
       } else {
         value.to_string() // Default is JavaScript specific

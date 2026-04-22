@@ -128,7 +128,7 @@ fn parse_digit(input : StringView) -> (Int?, StringView) {
   let mut result = 0
   let mut idx = 0
   for c in input {
-    if not(c.is_digit(10)) {
+    if !c.is_digit(10) {
       break
     }
     result = result * 10 + (Char::to_int(c) - '0')
@@ -247,7 +247,7 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
   let mut last = 0
   let mut chars = input[:]
   let buf = StringBuilder::new()
-  while not(chars.is_empty()) {
+  while !chars.is_empty() {
     let (text, new_chars) = parse_text(chars)
     buf.write_string(text)
     let (c, new_chars) = parse_braces(new_chars)
@@ -255,7 +255,7 @@ fn parse_format_string(input : String) -> Array[FormatPart] {
     if c is Some(v) {
       buf.write_char(v)
     }
-    if not(buf.is_empty()) {
+    if !buf.is_empty() {
       parts.push(Text(text=buf.to_string()))
       buf.reset()
     }
