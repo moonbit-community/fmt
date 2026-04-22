@@ -30,9 +30,9 @@ test {
 ```moonbit
 ///|
 test {
-  @json.inspect(@fmt.fstring("{:o}", [8]), content="10")
-  @json.inspect(@fmt.fstring("{:#o}", [8]), content="0o10")
-  @json.inspect(@fmt.fstring("{:b}", [16]), content="10000")
+  json_inspect(@fmt.fstring("{:o}", [8]), content="10")
+  json_inspect(@fmt.fstring("{:#o}", [8]), content="0o10")
+  json_inspect(@fmt.fstring("{:b}", [16]), content="10000")
 }
 ```
 
@@ -41,15 +41,15 @@ test {
 ```moonbit
 ///|
 test {
-  @json.inspect(
+  json_inspect(
     @fmt.fstring("{:>>30}", ["test"]),
     content=">>>>>>>>>>>>>>>>>>>>>>>>>>test",
   )
-  @json.inspect(
+  json_inspect(
     @fmt.fstring("{:<<30}", ["test"]),
     content="test<<<<<<<<<<<<<<<<<<<<<<<<<<",
   )
-  @json.inspect(
+  json_inspect(
     @fmt.fstring("{:^^30}", ["test"]),
     content="^^^^^^^^^^^^^test^^^^^^^^^^^^^",
   )
@@ -61,9 +61,9 @@ test {
 ```moonbit
 ///|
 test {
-  @json.inspect(@fmt.fstring("{:_d}", [4285565, 59]), content="428_556_5")
-  @json.inspect(@fmt.fstring("{:,d}", [4285565, 3]), content="428,556,5")
-  @json.inspect(
+  json_inspect(@fmt.fstring("{:_d}", [4285565, 59]), content="428_556_5")
+  json_inspect(@fmt.fstring("{:,d}", [4285565, 3]), content="428,556,5")
+  json_inspect(
     @fmt.fstring("{:#_b}", [4285565, 3]),
     content="0b1000_0010_1100_1000_1111_101",
   )
@@ -75,12 +75,12 @@ test {
 ```moonbit
 ///|
 test {
-  @json.inspect(@fmt.fstring("{:.5E}", [42.5]), content="4.25000E+01")
-  @json.inspect(
+  json_inspect(@fmt.fstring("{:.5E}", [42.5]), content="4.25000E+01")
+  json_inspect(
     @fmt.fstring("{:.10e}", [4464252.51334]),
     content="4.4642525133e+06",
   )
-  @json.inspect(
+  json_inspect(
     @fmt.fstring("{:.17e}", [4464252.51334]),
     content="4.46425251334000006e+06",
   )
