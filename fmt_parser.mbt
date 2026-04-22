@@ -6,14 +6,14 @@ priv enum Align {
   Right
   Center
   Default
-} derive(Show)
+}
 
 ///|
 priv enum Grouping {
   Comma
   Underscore
   Default
-} derive(Show)
+}
 
 ///|
 priv enum Typing {
@@ -38,7 +38,7 @@ priv enum SpecType {
   HexUpper
   Percent
   Default
-} derive(Show)
+}
 
 ///|
 priv struct Options {
@@ -46,7 +46,7 @@ priv struct Options {
   align : Align
   mut sharp : Bool
   mut zero : Bool
-} derive(Show)
+}
 
 ///|
 impl Default for Options with default() {
@@ -60,7 +60,7 @@ struct FormatSpec {
   grouping : Grouping
   precision : Int?
   typ : SpecType
-} derive(Show)
+}
 
 ///|
 impl Default for FormatSpec with default() {
@@ -77,7 +77,94 @@ impl Default for FormatSpec with default() {
 priv enum FormatPart {
   LocField(loc~ : Int, spec~ : FormatSpec)
   Text(text~ : String)
-} derive(Show)
+}
+
+///|
+impl Show for Align with output(self, logger) {
+  logger.write_string(
+    match self {
+      Left => "Left"
+      Right => "Right"
+      Center => "Center"
+      Default => "Default"
+    },
+  )
+}
+
+///|
+impl Show for Grouping with output(self, logger) {
+  logger.write_string(
+    match self {
+      Comma => "Comma"
+      Underscore => "Underscore"
+      Default => "Default"
+    },
+  )
+}
+
+///|
+impl Show for SpecType with output(self, logger) {
+  logger.write_string(
+    match self {
+      Binary => "Binary"
+      Digit => "Digit"
+      ExponentLower => "ExponentLower"
+      ExponentUpper => "ExponentUpper"
+      Float => "Float"
+      Octal => "Octal"
+      HexLower => "HexLower"
+      HexUpper => "HexUpper"
+      Percent => "Percent"
+      Default => "Default"
+    },
+  )
+}
+
+///|
+impl Show for Options with output(self, logger) {
+  logger.write_string("{fill: ")
+  logger.write_object(self.fill)
+  logger.write_string(", align: ")
+  logger.write_object(self.align)
+  logger.write_string(", sharp: ")
+  logger.write_object(self.sharp)
+  logger.write_string(", zero: ")
+  logger.write_object(self.zero)
+  logger.write_string("}")
+}
+
+///|
+impl Show for FormatSpec with output(self, logger) {
+  logger.write_string("{options: ")
+  logger.write_object(self.options)
+  logger.write_string(", width: ")
+  logger.write_object(self.width)
+  logger.write_string(", grouping: ")
+  logger.write_object(self.grouping)
+  logger.write_string(", precision: ")
+  logger.write_object(self.precision)
+  logger.write_string(", typ: ")
+  logger.write_object(self.typ)
+  logger.write_string("}")
+}
+
+///|
+impl Show for FormatPart with output(self, logger) {
+  match self {
+    LocField(loc~, spec~) => {
+      logger.write_string("LocField(loc=")
+      logger.write_object(loc)
+      logger.write_string(", spec=")
+      logger.write_object(spec)
+      logger.write_string(")")
+    }
+    Text(text~) => {
+      logger.write_string("Text(text=")
+      logger.write_object(text)
+      logger.write_string(")")
+    }
+  }
+}
 
 ///|
 fn match_align_char(c : Char) -> Align {
