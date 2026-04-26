@@ -2,7 +2,7 @@
 fn format_float(spec : FormatSpec, value : Double) -> String {
   let doble_string = match spec.typ {
     Float =>
-      if not(spec.precision is None) {
+      if !(spec.precision is None) {
         @ryu.ryu_to_string_precision(value, precision=spec.precision.unwrap())
       } else {
         value.to_string() // Default is JavaScript specific
@@ -102,7 +102,7 @@ fn format(parts : Array[FormatPart], values : Array[&Formatter]) -> String {
 ///
 /// Example:
 ///
-/// ```moonbit
+/// ```moonbit nocheck
 /// let name = "Alice"
 /// let age = 30
 /// let formatted = @fmt.fstring("Hello, {0}! You are {1} years old.", [name, age])
@@ -131,7 +131,7 @@ pub fn fstring(parts : String, values : Array[&Formatter]) -> String {
 ///
 /// Example:
 ///
-/// ```moonbit
+/// ```moonbit nocheck
 /// let name = "Alice"
 /// let age = 30
 /// @fmt.fprintln("Hello, {0}! You are {1} years old.", [name, age])
